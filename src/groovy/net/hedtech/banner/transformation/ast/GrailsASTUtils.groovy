@@ -49,10 +49,25 @@ class GrailsASTUtils extends org.codehaus.groovy.grails.compiler.injection.Grail
 
 
     static def addProperty(ClassNode classNode, String propertyName, Map propertyMetaData) {
-        FieldNode field = new FieldNode(propertyName, ACC_PRIVATE, new ClassNode(ClassUtils.getClass(this.classLoader, propertyMetaData.type)), new ClassNode(classNode.getClass()), null)
+        ClassNode newClassNode
+        try {
+            newClassNode = new ClassNode(ClassUtils.getClass(this.classLoader, propertyMetaData.type))
+        } catch (e)  {
+            //org.codehaus.groovy.ast.ModuleNode module = classNode.getModule();
+            //def unit=classNode.getCompileUnit()
+            //newClassNode = unit.getClass(propertyMetaData.type)
+            newClassNode = ClassHelper.make(propertyMetaData.type)
+            println "new node: $newClassNode"
+        }
+
+        if (newClassNode) {
+            FieldNode field = new FieldNode(propertyName, ACC_PRIVATE, newClassNode , new ClassNode(classNode.getClass()), null)
 //        FieldNode field = new FieldNode(propertyName, ACC_PRIVATE, ClassHelper.make(propertyMetaData.type), new ClassNode(classNode.getClass()), null)
         classNode.addProperty(new PropertyNode(field, ACC_PUBLIC, null, null))
         return classNode.getProperty(propertyName)
+        } else {
+            return null
+        }
     }
 
 

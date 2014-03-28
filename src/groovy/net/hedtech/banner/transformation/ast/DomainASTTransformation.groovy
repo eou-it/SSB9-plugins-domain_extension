@@ -84,6 +84,11 @@ public class DomainASTTransformation {
 
     private def addProperty(ClassNode classNode, String propertyName, Map propertyMetaData, boolean existingProperty = false) {
         PropertyNode propertyNode = existingProperty ? GrailsASTUtils.retrieveProperty(classNode, propertyName) : GrailsASTUtils.addProperty(classNode, propertyName, propertyMetaData)
+        if (!propertyNode) {
+            println "Property $propertyName not created"
+            return null
+        }
+
         FieldNode fieldNode = propertyNode.field
 
         //default value
