@@ -25,14 +25,7 @@ import javax.persistence.Transient
 import static org.springframework.asm.Opcodes.ACC_PRIVATE
 import static org.springframework.asm.Opcodes.ACC_PUBLIC
 
-class GrailsASTUtils extends org.codehaus.groovy.grails.compiler.injection.GrailsASTUtils {
-
-    static boolean isJpaDomainClass(ClassNode classNode) {
-        def entityAnnotation = classNode?.annotations?.find { annotation ->
-            annotation.classNode.name == Entity.name
-        }
-        return entityAnnotation ? true : false
-    }
+class BannerASTUtils extends org.codehaus.groovy.grails.compiler.injection.GrailsASTUtils {
 
     static boolean isExistingProperty(ClassNode classNode, String propertyName) {
         return hasProperty(classNode, propertyName)

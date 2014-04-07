@@ -1,39 +1,23 @@
 package net.hedtech.banner.transformation.ast
 
-import org.apache.commons.lang.ClassUtils
-import org.codehaus.groovy.ast.ASTNode
 import org.codehaus.groovy.ast.AnnotationNode
 import org.codehaus.groovy.ast.ClassNode
 import org.codehaus.groovy.ast.FieldNode
 import org.codehaus.groovy.ast.PropertyNode
 import org.codehaus.groovy.ast.builder.AstBuilder
 import org.codehaus.groovy.ast.expr.AnnotationConstantExpression
-import org.codehaus.groovy.ast.expr.ClosureExpression
 import org.codehaus.groovy.ast.expr.ConstantExpression
-import org.codehaus.groovy.ast.expr.Expression
 import org.codehaus.groovy.ast.expr.ListExpression
-import org.codehaus.groovy.ast.expr.MapEntryExpression
-import org.codehaus.groovy.ast.expr.MethodCallExpression
-import org.codehaus.groovy.ast.expr.NamedArgumentListExpression
-import org.codehaus.groovy.ast.expr.VariableExpression
-import org.codehaus.groovy.ast.stmt.BlockStatement
-import org.codehaus.groovy.ast.stmt.ExpressionStatement
-import org.codehaus.groovy.ast.stmt.ReturnStatement
-import org.codehaus.groovy.ast.stmt.Statement
-import org.codehaus.groovy.control.CompilePhase
-import org.codehaus.groovy.grails.commons.GrailsDomainClassProperty
 import org.hibernate.annotations.Type
 
 import javax.persistence.Column
 import javax.persistence.JoinColumn
 import javax.persistence.JoinColumns
 import javax.persistence.ManyToOne
+import javax.persistence.OneToOne
 import javax.persistence.Temporal
 import javax.persistence.TemporalType
 import javax.persistence.Transient
-
-import static org.springframework.asm.Opcodes.ACC_PRIVATE
-import static org.springframework.asm.Opcodes.ACC_PUBLIC
 
 public class DomainASTTransformation {
 
@@ -67,15 +51,15 @@ public class DomainASTTransformation {
 
 
     private def addOrModifyProperty(ClassNode classNode, String propertyName, Map propertyMetaData) {
-        boolean existingProperty = GrailsASTUtils.isExistingProperty(classNode, propertyName)
+        boolean existingProperty = BannerASTUtils.isExistingProperty(classNode, propertyName)
 
         if (existingProperty) {
-            GrailsASTUtils.removeAnnotationForProperty(classNode, propertyName, Column.name)
-            GrailsASTUtils.removeAnnotationForProperty(classNode, propertyName, Temporal.name)
-            GrailsASTUtils.removeAnnotationForProperty(classNode, propertyName, Transient.name)
-            GrailsASTUtils.removeAnnotationForProperty(classNode, propertyName, Type.name)
+            BannerASTUtils.removeAnnotationForProperty(classNode, propertyName, Column.name)
+            BannerASTUtils.removeAnnotationForProperty(classNode, propertyName, Temporal.name)
+            BannerASTUtils.removeAnnotationForProperty(classNode, propertyName, Transient.name)
+            BannerASTUtils.removeAnnotationForProperty(classNode, propertyName, Type.name)
 
-            GrailsASTUtils.removeConstraintExpressionsForProperty(classNode, propertyName)
+            BannerASTUtils.removeConstraintExpressionsForProperty(classNode, propertyName)
         }
 
         addProperty(classNode, propertyName, propertyMetaData, existingProperty)
@@ -83,7 +67,7 @@ public class DomainASTTransformation {
 
 
     private def addProperty(ClassNode classNode, String propertyName, Map propertyMetaData, boolean existingProperty = false) {
-        PropertyNode propertyNode = existingProperty ? GrailsASTUtils.retrieveProperty(classNode, propertyName) : GrailsASTUtils.addProperty(classNode, propertyName, propertyMetaData)
+        PropertyNode propertyNode = existingProperty ? BannerASTUtils.retrieveProperty(classNode, propertyName) : BannerASTUtils.addProperty(classNode, propertyName, propertyMetaData)
         if (!propertyNode) {
             println "Property $propertyName not created"
             return null
@@ -97,11 +81,11 @@ public class DomainASTTransformation {
         }
 
         if (propertyMetaData.containsKey("transient") && propertyMetaData.transient == true) {          //add annotation @Transient
-            GrailsASTUtils.addAnnotationToProperty(propertyNode, Transient.name, [:])
+            BannerASTUtils.addAnnotationToProperty(propertyNode, Transient.name, [:])
         } else if (propertyMetaData.containsKey("persistenceProperties")) {                             //add annotation @Column
-            GrailsASTUtils.addAnnotationToProperty(propertyNode, Column.name, propertyMetaData.persistenceProperties ?: [:])
+            BannerASTUtils.addAnnotationToProperty(propertyNode, Column.name, propertyMetaData.persistenceProperties ?: [:])
         } else if (propertyMetaData.containsKey("manyToOneProperties")) {                               //add annotations @ManyToOne, @JoinColumns
-            GrailsASTUtils.addAnnotationToProperty(propertyNode, ManyToOne.name, [:])
+            BannerASTUtils.addAnnotationToProperty(propertyNode, ManyToOne.name, [:])
 
             ListExpression listExpression = new ListExpression()
             //annotations @JoinColumn
@@ -114,20 +98,35 @@ public class DomainASTTransformation {
             }
 
             //add annotation @JoinColumns
-            GrailsASTUtils.addAnnotationToProperty(propertyNode, JoinColumns.name, [value: listExpression])
+            BannerASTUtils.addAnnotationToProperty(propertyNode, JoinColumns.name, [value: listExpression])
+        } else if (propertyMetaData.containsKey("oneToOneProperties")) {                               //add annotations @OneToOne, @JoinColumns
+            BannerASTUtils.addAnnotationToProperty(propertyNode, OneToOne.name, [:])
+
+            ListExpression listExpression = new ListExpression()
+            //annotations @JoinColumn
+            propertyMetaData.oneToOneProperties.each { joinColumnMetaData ->
+                AnnotationNode joinColumn = new AnnotationNode(new ClassNode(JoinColumn))
+                joinColumnMetaData.each { attribute, value ->
+                    joinColumn.addMember(attribute, new ConstantExpression(value))
+                }
+                listExpression.addExpression(new AnnotationConstantExpression(joinColumn))
+            }
+
+            //add annotation @JoinColumns
+            BannerASTUtils.addAnnotationToProperty(propertyNode, JoinColumns.name, [value: listExpression])
         }
 
         if (fieldNode.getType().name == Date.name) {                    //handle @Temporal annotation for java.util.Date
             def temporalType = propertyMetaData.temporalType ?: "DATE"
             def expression = new AstBuilder().buildFromString("${TemporalType.name}.${temporalType}")?.get(0)?.getStatements()?.get(0)?.getExpression()
 //            def expression = new AstBuilder().buildFromString(CompilePhase.CONVERSION, true, "${TemporalType.name}.${temporalType}")?.get(0)?.getStatements()?.get(0)?.getExpression()
-            GrailsASTUtils.addAnnotationToProperty(propertyNode, Temporal.name, [value: expression])
+            BannerASTUtils.addAnnotationToProperty(propertyNode, Temporal.name, [value: expression])
         } else if (fieldNode.getType().name == Boolean.name) {          //handle @org.hibernate.annotations.Type annotation for java.lang.Boolean
             def booleanType = propertyMetaData.booleanType ?: "yes_no"
-            GrailsASTUtils.addAnnotationToProperty(propertyNode, Type.name, [type: booleanType])
+            BannerASTUtils.addAnnotationToProperty(propertyNode, Type.name, [type: booleanType])
         }
 
-        GrailsASTUtils.addConstraintsForProperty(classNode, propertyName, propertyMetaData.constraintExpression)
+        BannerASTUtils.addConstraintsForProperty(classNode, propertyName, propertyMetaData.constraintExpression)
 
         return classNode.getProperty(propertyName)
     }

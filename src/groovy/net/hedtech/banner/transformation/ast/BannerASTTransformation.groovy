@@ -7,6 +7,7 @@ import org.codehaus.groovy.ast.ClassNode
 import org.codehaus.groovy.ast.ModuleNode
 import org.codehaus.groovy.control.CompilePhase
 import org.codehaus.groovy.control.SourceUnit
+import org.codehaus.groovy.grails.compiler.injection.GrailsASTUtils
 import org.codehaus.groovy.transform.ASTTransformation
 import org.codehaus.groovy.transform.GroovyASTTransformation
 
@@ -28,7 +29,7 @@ class BannerASTTransformation implements ASTTransformation {
             if(!astNodes[1]) return;
             if(!(astNodes[1] instanceof ClassNode)) return;
 
-            applyTransformationIfAny((ClassNode)astNodes[1])
+            applyTransformationIfAny((ClassNode)astNodes[1], sourceUnit)
         } else { //Global AST
             if (!(astNodes[0] instanceof ModuleNode)) return
 
@@ -36,13 +37,13 @@ class BannerASTTransformation implements ASTTransformation {
 
             List<ClassNode> classes = moduleNode.getClasses()
             if (!classes.isEmpty()) {
-                applyTransformationIfAny(classes.get(0))
+                applyTransformationIfAny(classes.get(0), sourceUnit)
             }
         }
     }
 
 
-    private void applyTransformationIfAny(ClassNode classNode) {
+    private void applyTransformationIfAny(ClassNode classNode, SourceUnit sourceUnit) {
         String className = classNode.getName();
 
         def rules = TransformationRulesFileUtility.rulesForClass(className)
@@ -50,7 +51,7 @@ class BannerASTTransformation implements ASTTransformation {
             return
         }
 
-        if (GrailsASTUtils.isJpaDomainClass(classNode)) {
+        if (GrailsASTUtils.isDomainClass(classNode, sourceUnit)) {
             new DomainASTTransformation().applyTransformation(classNode, rules)
         }
     }
