@@ -28,12 +28,23 @@ public class DomainASTTransformation {
         if (!classNode || !rules) {
             return
         }
-
-        // fields
-        applyTransformationForFields(classNode, rules.fields)
+        //table (or view) definition
 
         //named queries
+        applyTransformationForNamedQueries(classNode, rules.namedQueries)
+        // fields
+        applyTransformationForFields(classNode, rules.fields)
         //methods
+    }
+
+
+    private void applyTransformationForNamedQueries(ClassNode classNode, Map namedQueries) {
+        if (!namedQueries) {
+            return
+        }
+        namedQueries.each {String namedQueryName, String namedQueryQuery ->
+            addOrReplaceNamedQuery(classNode, namedQueryName, namedQueryQuery)
+        }
     }
 
 
@@ -47,6 +58,37 @@ public class DomainASTTransformation {
                 addOrModifyProperty(classNode, fieldName, fieldMetaData)
             }
         }
+    }
+
+
+    private def addOrReplaceNamedQuery(ClassNode classNode, String namedQueryName, String namedQueryQuery) {
+        if (!namedQueryName.startsWith(classNode.getNameWithoutPackage())) {
+            namedQueryName = classNode.getNameWithoutPackage() + "." + namedQueryName
+        }
+        // Check for a NamedQueries Annotation in the domain
+        AnnotationNode existingNamedQueriesNode = BannerASTUtils.retrieveNamedQueries(classNode)
+        if (!existingNamedQueriesNode) {
+            // Check if there's a single NamedQuery Annotation (without NamedQueries) defined in the domain
+            AnnotationNode existingNamedQueryNode = BannerASTUtils.retrieveSingleNamedQuery(classNode)
+            if (existingNamedQueryNode) {                    // If found then remove the NamedQuery from the domain
+                BannerASTUtils.removeNamedQueryFromClassNode(classNode, existingNamedQueryNode)
+            }
+            // Create a new NamedQuery based on values from XML
+            AnnotationNode newNamedQueryNode = BannerASTUtils.createNamedQuery(namedQueryName, namedQueryQuery)
+            // Create a new NamedQueries annotation and add either the removed NamedQuery or a new NamedQuery
+            AnnotationNode namedQueryNode = existingNamedQueryNode ?: newNamedQueryNode
+            BannerASTUtils.createNamedQueriesAndAddNamedQuery(classNode, namedQueryNode)
+        }
+        AnnotationNode newNamedQueriesNode = BannerASTUtils.retrieveNamedQueries(classNode)
+        AnnotationNode namedQueriesNode = existingNamedQueriesNode ?: newNamedQueriesNode
+        // Check for existing NamedQuery
+        AnnotationConstantExpression existingNamedQuery = BannerASTUtils.retrieveNamedQuery(classNode, namedQueryName)
+        if (existingNamedQuery) {
+            // remove existingNamedQuery from NamedQueries
+            BannerASTUtils.removeNamedQueryFromNamedQueries(namedQueriesNode, existingNamedQuery)
+        }
+        // create new NamedQuery based on values from XML
+        BannerASTUtils.addNamedQueryToNamedQueries(namedQueriesNode, namedQueryName, namedQueryQuery)
     }
 
 
