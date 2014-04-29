@@ -23,6 +23,14 @@ import static org.springframework.asm.Opcodes.ACC_PUBLIC
 
 class BannerASTUtils extends org.codehaus.groovy.grails.compiler.injection.GrailsASTUtils {
 
+    static AnnotationNode retrieveTable(ClassNode classNode) {
+        AnnotationNode tableNode = classNode.getAnnotations().find {
+            it.classNode?.name?.equals(Table.name)
+        }
+        return tableNode
+    }
+
+
     static AnnotationNode retrieveNamedQueries(ClassNode classNode) {
         AnnotationNode namedQueriesNode = classNode.getAnnotations().find {
             it.classNode?.name?.equals(NamedQueries.name)

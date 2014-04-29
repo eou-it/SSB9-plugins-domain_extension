@@ -29,12 +29,25 @@ public class DomainASTTransformation {
             return
         }
         //table (or view) definition
-
+        applyTransformationForTableOrView(classNode, rules.tableOrView)
         //named queries
         applyTransformationForNamedQueries(classNode, rules.namedQueries)
         // fields
         applyTransformationForFields(classNode, rules.fields)
         //methods
+    }
+
+
+    private void applyTransformationForTableOrView(ClassNode classNode, String tableOrViewName) {
+        if (!tableOrViewName) {
+            return
+        }
+        // Check for Table annotation on ClassNode (domain)
+        AnnotationNode tableNode = BannerASTUtils.retrieveTable(classNode)
+        // Remove the Table annotations' members
+        tableNode?.members?.clear()
+        // Add a new member based on Table or View name from XML file
+        tableNode?.addMember('name', new ConstantExpression(tableOrViewName))
     }
 
 
