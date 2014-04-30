@@ -82,18 +82,15 @@ public class DomainASTTransformation {
         AnnotationNode existingNamedQueriesNode = BannerASTUtils.retrieveNamedQueries(classNode)
         if (!existingNamedQueriesNode) {
             // Check if there's a single NamedQuery Annotation (without NamedQueries) defined in the domain
-            AnnotationNode existingNamedQueryNode = BannerASTUtils.retrieveSingleNamedQuery(classNode)
-            if (existingNamedQueryNode) {                    // If found then remove the NamedQuery from the domain
-                BannerASTUtils.removeNamedQueryFromClassNode(classNode, existingNamedQueryNode)
+            AnnotationNode singleNamedQueryNode = BannerASTUtils.retrieveSingleNamedQuery(classNode)
+            if (singleNamedQueryNode) {                    // If found then remove the NamedQuery from the domain
+                BannerASTUtils.removeNamedQueryFromClassNode(classNode, singleNamedQueryNode)
             }
-            // Create a new NamedQuery based on values from XML
-            AnnotationNode newNamedQueryNode = BannerASTUtils.createNamedQuery(namedQueryName, namedQueryQuery)
             // Create a new NamedQueries annotation and add either the removed NamedQuery or a new NamedQuery
-            AnnotationNode namedQueryNode = existingNamedQueryNode ?: newNamedQueryNode
+            AnnotationNode namedQueryNode = singleNamedQueryNode ?: BannerASTUtils.createNamedQuery(namedQueryName, namedQueryQuery)
             BannerASTUtils.createNamedQueriesAndAddNamedQuery(classNode, namedQueryNode)
         }
-        AnnotationNode newNamedQueriesNode = BannerASTUtils.retrieveNamedQueries(classNode)
-        AnnotationNode namedQueriesNode = existingNamedQueriesNode ?: newNamedQueriesNode
+        AnnotationNode namedQueriesNode = existingNamedQueriesNode ?: BannerASTUtils.retrieveNamedQueries(classNode)
         // Check for existing NamedQuery
         AnnotationConstantExpression existingNamedQuery = BannerASTUtils.retrieveNamedQuery(classNode, namedQueryName)
         if (existingNamedQuery) {
