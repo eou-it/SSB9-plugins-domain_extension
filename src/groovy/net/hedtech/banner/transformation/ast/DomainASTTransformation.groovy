@@ -110,6 +110,9 @@ public class DomainASTTransformation {
             BannerASTUtils.removeAnnotationForProperty(classNode, propertyName, Temporal.name)
             BannerASTUtils.removeAnnotationForProperty(classNode, propertyName, Transient.name)
             BannerASTUtils.removeAnnotationForProperty(classNode, propertyName, Type.name)
+            BannerASTUtils.removeAnnotationForProperty(classNode, propertyName, ManyToOne.name)
+            BannerASTUtils.removeAnnotationForProperty(classNode, propertyName, OneToOne.name)
+            BannerASTUtils.removeAnnotationForProperty(classNode, propertyName, JoinColumns.name)
 
             BannerASTUtils.removeConstraintExpressionsForProperty(classNode, propertyName)
         }

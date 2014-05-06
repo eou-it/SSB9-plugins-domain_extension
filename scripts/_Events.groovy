@@ -8,8 +8,8 @@ eventCompileStart = {target ->
 }
 
 def pluginBaseDir(dir ) {
-    def result = "$dir/plugins/ast_domain_extension.git".replace('\\','/')
-    if (dir.endsWith("ast_domain_extension.git"))
+    def result = "$dir/plugins/domain_extension.git".replace('\\','/')
+    if (dir.endsWith("domain_extension.git"))
         result=dir
     return result
 }
