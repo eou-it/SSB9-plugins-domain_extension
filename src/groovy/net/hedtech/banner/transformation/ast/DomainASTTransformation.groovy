@@ -3,11 +3,13 @@ package net.hedtech.banner.transformation.ast
 import org.codehaus.groovy.ast.AnnotationNode
 import org.codehaus.groovy.ast.ClassNode
 import org.codehaus.groovy.ast.FieldNode
+import org.codehaus.groovy.ast.MethodNode
 import org.codehaus.groovy.ast.PropertyNode
 import org.codehaus.groovy.ast.builder.AstBuilder
 import org.codehaus.groovy.ast.expr.AnnotationConstantExpression
 import org.codehaus.groovy.ast.expr.ConstantExpression
 import org.codehaus.groovy.ast.expr.ListExpression
+import org.codehaus.groovy.control.CompilePhase
 import org.hibernate.annotations.Type
 
 import javax.persistence.Column
@@ -25,7 +27,7 @@ public class DomainASTTransformation {
 
 
     def applyTransformation(ClassNode classNode, Map rules) {
-        if (!classNode || !rules) {
+        if (!classNode || !rules ) {
             return
         }
         //table (or view) definition
@@ -35,6 +37,49 @@ public class DomainASTTransformation {
         // fields
         applyTransformationForFields(classNode, rules.fields)
         //methods
+        applyTransformationForMethods(classNode, rules.methods)
+    }
+
+    private void applyTransformationForMethods(ClassNode classNode, methods) {
+        if (!methods) {
+            return
+        }
+        methods.each { method ->
+            MethodNode m = makeMethod(classNode, method.name, method.source)
+            def existingMethod = classNode.getMethod(method.name, m.parameters)
+            if (existingMethod) {
+                //clone relevant parts
+                existingMethod.setCode( m.code )
+                existingMethod.setModifiers(m.modifiers)
+                existingMethod.setVariableScope(m.variableScope)
+            } else {
+                classNode.addMethod(m)
+            }
+            println "added/modified added method $method.name"
+        }
+    }
+
+    private MethodNode makeMethod( ClassNode classNode, String methodName, String methodSource )  {
+        def errorMessage=""
+        def code = """
+                        package $classNode.packageName
+                        class $classNode.nameWithoutPackage {
+                            $methodSource
+                        }
+                   """
+        def result
+        try {
+            //It doesn't seem possible to use other Domain classes in methodSource
+            //Tried several CompilePhase's but when too early, no methods nodes are generated, when later,
+            //an error occurs: Apparent variable 'Department' was found in a static scope but doesn't refer to a local variable.
+            def nodes = new AstBuilder().buildFromString(CompilePhase.CLASS_GENERATION, true, code)
+            result = nodes[1].methods.find{it.name == methodName}
+        }  catch (e) {
+            errorMessage=e.getMessage()
+        }
+        if (!result)
+            println "Error making $methodName:\n $errorMessage"
+        return result
     }
 
 
