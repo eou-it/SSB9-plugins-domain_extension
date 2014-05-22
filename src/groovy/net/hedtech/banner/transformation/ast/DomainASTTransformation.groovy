@@ -27,59 +27,17 @@ public class DomainASTTransformation {
 
 
     def applyTransformation(ClassNode classNode, Map rules) {
-        if (!classNode || !rules ) {
+        if (!classNode || !rules) {
             return
         }
         //table (or view) definition
         applyTransformationForTableOrView(classNode, rules.tableOrView)
-        //named queries
-        applyTransformationForNamedQueries(classNode, rules.namedQueries)
         // fields
         applyTransformationForFields(classNode, rules.fields)
+        //named queries
+        applyTransformationForNamedQueries(classNode, rules.namedQueries)
         //methods
         applyTransformationForMethods(classNode, rules.methods)
-    }
-
-    private void applyTransformationForMethods(ClassNode classNode, methods) {
-        if (!methods) {
-            return
-        }
-        methods.each { method ->
-            MethodNode m = makeMethod(classNode, method.name, method.source)
-            def existingMethod = classNode.getMethod(method.name, m.parameters)
-            if (existingMethod) {
-                //clone relevant parts
-                existingMethod.setCode( m.code )
-                existingMethod.setModifiers(m.modifiers)
-                existingMethod.setVariableScope(m.variableScope)
-            } else {
-                classNode.addMethod(m)
-            }
-            println "added/modified added method $method.name"
-        }
-    }
-
-    private MethodNode makeMethod( ClassNode classNode, String methodName, String methodSource )  {
-        def errorMessage=""
-        def code = """
-                        package $classNode.packageName
-                        class $classNode.nameWithoutPackage {
-                            $methodSource
-                        }
-                   """
-        def result
-        try {
-            //It doesn't seem possible to use other Domain classes in methodSource
-            //Tried several CompilePhase's but when too early, no methods nodes are generated, when later,
-            //an error occurs: Apparent variable 'Department' was found in a static scope but doesn't refer to a local variable.
-            def nodes = new AstBuilder().buildFromString(CompilePhase.CLASS_GENERATION, true, code)
-            result = nodes[1].methods.find{it.name == methodName}
-        }  catch (e) {
-            errorMessage=e.getMessage()
-        }
-        if (!result)
-            println "Error making $methodName:\n $errorMessage"
-        return result
     }
 
 
@@ -96,6 +54,19 @@ public class DomainASTTransformation {
     }
 
 
+    private void applyTransformationForFields(ClassNode classNode, Map fields) {
+        if (!fields) {
+            return
+        }
+
+        fields.each {String fieldName, Map fieldMetaData ->
+            if (!fieldNameBlackList.contains(fieldName)) {
+                addOrModifyProperty(classNode, fieldName, fieldMetaData)
+            }
+        }
+    }
+
+
     private void applyTransformationForNamedQueries(ClassNode classNode, Map namedQueries) {
         if (!namedQueries) {
             return
@@ -106,44 +77,24 @@ public class DomainASTTransformation {
     }
 
 
-    private void applyTransformationForFields(ClassNode classNode, Map fields) {
-        if (!fields) {
+    private void applyTransformationForMethods(ClassNode classNode, List methods) {
+        if (!methods) {
             return
         }
-
-        fields.each { String fieldName, Map fieldMetaData ->
-            if (!fieldNameBlackList.contains(fieldName)) {
-                addOrModifyProperty(classNode, fieldName, fieldMetaData)
+        methods.each {String methodSource ->
+            MethodNode methodNode = makeMethod(classNode, methodSource)
+            def existingMethod = classNode.getMethod(methodNode.name, methodNode.parameters)
+            if (existingMethod) {
+                //clone relevant parts
+                existingMethod.setCode(methodNode.code)
+                existingMethod.setModifiers(methodNode.modifiers)
+                existingMethod.setVariableScope(methodNode.variableScope)
+                println "Modify method: $methodNode.name($methodNode.parameters.name)"
+            } else {
+                classNode.addMethod(methodNode)
+                println "Add method: $methodNode.name($methodNode.parameters.name)"
             }
         }
-    }
-
-
-    private def addOrReplaceNamedQuery(ClassNode classNode, String namedQueryName, String namedQueryQuery) {
-        if (!namedQueryName.startsWith(classNode.getNameWithoutPackage())) {
-            namedQueryName = classNode.getNameWithoutPackage() + "." + namedQueryName
-        }
-        // Check for a NamedQueries Annotation in the domain
-        AnnotationNode existingNamedQueriesNode = BannerASTUtils.retrieveNamedQueries(classNode)
-        if (!existingNamedQueriesNode) {
-            // Check if there's a single NamedQuery Annotation (without NamedQueries) defined in the domain
-            AnnotationNode singleNamedQueryNode = BannerASTUtils.retrieveSingleNamedQuery(classNode)
-            if (singleNamedQueryNode) {                    // If found then remove the NamedQuery from the domain
-                BannerASTUtils.removeNamedQueryFromClassNode(classNode, singleNamedQueryNode)
-            }
-            // Create a new NamedQueries annotation and add either the removed NamedQuery or a new NamedQuery
-            AnnotationNode namedQueryNode = singleNamedQueryNode ?: BannerASTUtils.createNamedQuery(namedQueryName, namedQueryQuery)
-            BannerASTUtils.createNamedQueriesAndAddNamedQuery(classNode, namedQueryNode)
-        }
-        AnnotationNode namedQueriesNode = existingNamedQueriesNode ?: BannerASTUtils.retrieveNamedQueries(classNode)
-        // Check for existing NamedQuery
-        AnnotationConstantExpression existingNamedQuery = BannerASTUtils.retrieveNamedQuery(classNode, namedQueryName)
-        if (existingNamedQuery) {
-            // remove existingNamedQuery from NamedQueries
-            BannerASTUtils.removeNamedQueryFromNamedQueries(namedQueriesNode, existingNamedQuery)
-        }
-        // create new NamedQuery based on values from XML
-        BannerASTUtils.addNamedQueryToNamedQueries(namedQueriesNode, namedQueryName, namedQueryQuery)
     }
 
 
@@ -189,9 +140,9 @@ public class DomainASTTransformation {
 
             ListExpression listExpression = new ListExpression()
             //annotations @JoinColumn
-            propertyMetaData.manyToOneProperties.each { joinColumnMetaData ->
+            propertyMetaData.manyToOneProperties.each {joinColumnMetaData ->
                 AnnotationNode joinColumn = new AnnotationNode(new ClassNode(JoinColumn))
-                joinColumnMetaData.each { attribute, value ->
+                joinColumnMetaData.each {attribute, value ->
                     joinColumn.addMember(attribute, new ConstantExpression(value))
                 }
                 listExpression.addExpression(new AnnotationConstantExpression(joinColumn))
@@ -204,9 +155,9 @@ public class DomainASTTransformation {
 
             ListExpression listExpression = new ListExpression()
             //annotations @JoinColumn
-            propertyMetaData.oneToOneProperties.each { joinColumnMetaData ->
+            propertyMetaData.oneToOneProperties.each {joinColumnMetaData ->
                 AnnotationNode joinColumn = new AnnotationNode(new ClassNode(JoinColumn))
-                joinColumnMetaData.each { attribute, value ->
+                joinColumnMetaData.each {attribute, value ->
                     joinColumn.addMember(attribute, new ConstantExpression(value))
                 }
                 listExpression.addExpression(new AnnotationConstantExpression(joinColumn))
@@ -218,7 +169,7 @@ public class DomainASTTransformation {
 
         if (fieldNode.getType().name == Date.name) {                    //handle @Temporal annotation for java.util.Date
             def temporalType = propertyMetaData.temporalType ?: "DATE"
-            def expression = new AstBuilder().buildFromString("${TemporalType.name}.${temporalType}")?.get(0)?.getStatements()?.get(0)?.getExpression()
+            def expression = new AstBuilder().buildFromString("${ TemporalType.name }.${ temporalType }")?.get(0)?.getStatements()?.get(0)?.getExpression()
 //            def expression = new AstBuilder().buildFromString(CompilePhase.CONVERSION, true, "${TemporalType.name}.${temporalType}")?.get(0)?.getStatements()?.get(0)?.getExpression()
             BannerASTUtils.addAnnotationToProperty(propertyNode, Temporal.name, [value: expression])
         } else if (fieldNode.getType().name == Boolean.name) {          //handle @org.hibernate.annotations.Type annotation for java.lang.Boolean
@@ -227,7 +178,65 @@ public class DomainASTTransformation {
         }
 
         BannerASTUtils.addConstraintsForProperty(classNode, propertyName, propertyMetaData.constraintExpression)
-
+        println existingProperty ? "Replace property: $propertyName" : "Add property: $propertyName"
         return classNode.getProperty(propertyName)
+    }
+
+
+    private def addOrReplaceNamedQuery(ClassNode classNode, String namedQueryName, String namedQueryQuery) {
+        if (!namedQueryName.startsWith(classNode.getNameWithoutPackage())) {
+            namedQueryName = classNode.getNameWithoutPackage() + "." + namedQueryName
+        }
+        // Check for a NamedQueries Annotation in the domain
+        AnnotationNode existingNamedQueriesNode = BannerASTUtils.retrieveNamedQueries(classNode)
+        if (!existingNamedQueriesNode) {
+            // Check if there's a single NamedQuery Annotation (without NamedQueries) defined in the domain
+            AnnotationNode singleNamedQueryNode = BannerASTUtils.retrieveSingleNamedQuery(classNode)
+            if (singleNamedQueryNode) {                    // If found then remove the NamedQuery from the domain
+                BannerASTUtils.removeNamedQueryFromClassNode(classNode, singleNamedQueryNode)
+            }
+            // Create a new NamedQueries annotation and add either the removed NamedQuery or a new NamedQuery
+            AnnotationNode namedQueryNode = singleNamedQueryNode ?: BannerASTUtils.createNamedQuery(namedQueryName, namedQueryQuery)
+            BannerASTUtils.createNamedQueriesAndAddNamedQuery(classNode, namedQueryNode)
+        }
+        AnnotationNode namedQueriesNode = existingNamedQueriesNode ?: BannerASTUtils.retrieveNamedQueries(classNode)
+        // Check for existing NamedQuery
+        AnnotationConstantExpression existingNamedQuery = BannerASTUtils.retrieveNamedQuery(classNode, namedQueryName)
+        if (existingNamedQuery) {
+            // remove existingNamedQuery from NamedQueries
+            BannerASTUtils.removeNamedQueryFromNamedQueries(namedQueriesNode, existingNamedQuery)
+        }
+        if (existingNamedQuery && namedQueriesNode) {
+            println "Replace NamedQuery: " + namedQueryName
+        } else {
+            println "Add NamedQuery: " + namedQueryName
+        }
+        // create new NamedQuery based on values from XML
+        BannerASTUtils.addNamedQueryToNamedQueries(namedQueriesNode, namedQueryName, namedQueryQuery)
+    }
+
+
+    private MethodNode makeMethod(ClassNode classNode, String methodSource) {
+        List currentMethods = classNode.methods
+        def errorMessage = ""
+        def code = """
+                        package $classNode.packageName
+                        class $classNode.nameWithoutPackage {
+                            $methodSource
+                        }
+                   """
+        MethodNode result
+        try {
+            //It doesn't seem possible to use other Domain classes in methodSource
+            //Tried several CompilePhase's but when too early, no methods nodes are generated, when later,
+            //an error occurs: Apparent variable 'Department' was found in a static scope but doesn't refer to a local variable.
+            def nodes = new AstBuilder().buildFromString(CompilePhase.CLASS_GENERATION, true, code)
+            result = (nodes[1]?.methods - currentMethods)[0]
+        } catch (e) {
+            errorMessage = e.getMessage()
+        }
+        if (!result)
+            println "Error making method:\n $errorMessage"
+        return result
     }
 }

@@ -52,6 +52,9 @@ class BannerASTTransformation implements ASTTransformation {
         }
 
         if (GrailsASTUtils.isDomainClass(classNode, sourceUnit)) {
+            println "#################################################"
+            println "Domain Class: " + classNode.getNameWithoutPackage()
+            println "#################################################"
             new DomainASTTransformation().applyTransformation(classNode, rules)
         }
     }
