@@ -217,7 +217,6 @@ public class DomainASTTransformation {
 
 
     private MethodNode makeMethod(ClassNode classNode, String methodSource) {
-        List currentMethods = classNode.methods
         def errorMessage = ""
         def code = """
                         package $classNode.packageName
@@ -231,7 +230,10 @@ public class DomainASTTransformation {
             //Tried several CompilePhase's but when too early, no methods nodes are generated, when later,
             //an error occurs: Apparent variable 'Department' was found in a static scope but doesn't refer to a local variable.
             def nodes = new AstBuilder().buildFromString(CompilePhase.CLASS_GENERATION, true, code)
-            result = (nodes[1]?.methods - currentMethods)[0]
+            // get text from start of source code that should have the method name
+            def methodSourceNameFragment = methodSource.substring(0, methodSource.indexOf("("))
+            result=nodes[1]?.methods.find { method -> methodSourceNameFragment.contains(method.name) }
+
         } catch (e) {
             errorMessage = e.getMessage()
         }
