@@ -114,16 +114,11 @@ class BannerASTUtils extends org.codehaus.groovy.grails.compiler.injection.Grail
         try {
             newClassNode = new ClassNode(ClassUtils.getClass(this.classLoader, propertyMetaData.type))
         } catch (e) {
-            //org.codehaus.groovy.ast.ModuleNode module = classNode.getModule();
-            //def unit=classNode.getCompileUnit()
-            //newClassNode = unit.getClass(propertyMetaData.type)
             newClassNode = ClassHelper.make(propertyMetaData.type)
-            println "new node: $newClassNode"
         }
 
         if (newClassNode) {
             FieldNode field = new FieldNode(propertyName, ACC_PRIVATE, newClassNode, new ClassNode(classNode.getClass()), null)
-//        FieldNode field = new FieldNode(propertyName, ACC_PRIVATE, ClassHelper.make(propertyMetaData.type), new ClassNode(classNode.getClass()), null)
             classNode.addProperty(new PropertyNode(field, ACC_PUBLIC, null, null))
             return classNode.getProperty(propertyName)
         } else {
@@ -199,7 +194,6 @@ class BannerASTUtils extends org.codehaus.groovy.grails.compiler.injection.Grail
         }
 
         def expression = new AstBuilder().buildFromString(constraintExpressionSource)?.get(0)?.getStatements()?.get(0)?.getExpression()
-//        def expression = new AstBuilder().buildFromString(CompilePhase.CONVERSION, true, constraintExpressionSource)?.get(0)?.getStatements()?.get(0)?.getExpression()
         if (expression) {
             statements.add(new ExpressionStatement(expression))
         }

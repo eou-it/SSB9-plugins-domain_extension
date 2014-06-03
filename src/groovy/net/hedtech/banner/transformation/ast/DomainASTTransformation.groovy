@@ -23,42 +23,34 @@ import javax.persistence.Transient
 
 public class DomainASTTransformation {
 
-    private List fieldNameBlackList = ['id'] //, 'lastModified', 'lastModifiedBy', 'version', 'dataOrigin'
+    private static List fieldNameBlackList = ['id'] //, 'lastModified', 'lastModifiedBy', 'version', 'dataOrigin'
 
 
-    def applyTransformation(ClassNode classNode, Map rules) {
+    static def applyTransformation(ClassNode classNode, Map rules) {
         if (!classNode || !rules) {
             return
         }
-        //table (or view) definition
         applyTransformationForTableOrView(classNode, rules.tableOrView)
-        // fields
         applyTransformationForFields(classNode, rules.fields)
-        //named queries
         applyTransformationForNamedQueries(classNode, rules.namedQueries)
-        //methods
         applyTransformationForMethods(classNode, rules.methods)
     }
 
 
-    private void applyTransformationForTableOrView(ClassNode classNode, String tableOrViewName) {
+    private static void applyTransformationForTableOrView(ClassNode classNode, String tableOrViewName) {
         if (!tableOrViewName) {
             return
         }
-        // Check for Table annotation on ClassNode (domain)
         AnnotationNode tableNode = BannerASTUtils.retrieveTable(classNode)
-        // Remove the Table annotations' members
         tableNode?.members?.clear()
-        // Add a new member based on Table or View name from XML file
         tableNode?.addMember('name', new ConstantExpression(tableOrViewName))
     }
 
 
-    private void applyTransformationForFields(ClassNode classNode, Map fields) {
+    private static void applyTransformationForFields(ClassNode classNode, Map fields) {
         if (!fields) {
             return
         }
-
         fields.each {String fieldName, Map fieldMetaData ->
             if (!fieldNameBlackList.contains(fieldName)) {
                 addOrModifyProperty(classNode, fieldName, fieldMetaData)
@@ -67,7 +59,7 @@ public class DomainASTTransformation {
     }
 
 
-    private void applyTransformationForNamedQueries(ClassNode classNode, Map namedQueries) {
+    private static void applyTransformationForNamedQueries(ClassNode classNode, Map namedQueries) {
         if (!namedQueries) {
             return
         }
@@ -77,7 +69,7 @@ public class DomainASTTransformation {
     }
 
 
-    private void applyTransformationForMethods(ClassNode classNode, List methods) {
+    private static void applyTransformationForMethods(ClassNode classNode, List methods) {
         if (!methods) {
             return
         }
@@ -98,7 +90,7 @@ public class DomainASTTransformation {
     }
 
 
-    private def addOrModifyProperty(ClassNode classNode, String propertyName, Map propertyMetaData) {
+    private static def addOrModifyProperty(ClassNode classNode, String propertyName, Map propertyMetaData) {
         boolean existingProperty = BannerASTUtils.isExistingProperty(classNode, propertyName)
 
         if (existingProperty) {
@@ -112,12 +104,11 @@ public class DomainASTTransformation {
 
             BannerASTUtils.removeConstraintExpressionsForProperty(classNode, propertyName)
         }
-
         addProperty(classNode, propertyName, propertyMetaData, existingProperty)
     }
 
 
-    private def addProperty(ClassNode classNode, String propertyName, Map propertyMetaData, boolean existingProperty = false) {
+    private static def addProperty(ClassNode classNode, String propertyName, Map propertyMetaData, boolean existingProperty = false) {
         PropertyNode propertyNode = existingProperty ? BannerASTUtils.retrieveProperty(classNode, propertyName) : BannerASTUtils.addProperty(classNode, propertyName, propertyMetaData)
         if (!propertyNode) {
             println "Property $propertyName not created"
@@ -178,12 +169,13 @@ public class DomainASTTransformation {
         }
 
         BannerASTUtils.addConstraintsForProperty(classNode, propertyName, propertyMetaData.constraintExpression)
-        println existingProperty ? "Replace property: $propertyName" : "Add property: $propertyName"
+        String addOrReplacePropertyText = existingProperty ? "Replace property: " : "Add property:     "
+        println addOrReplacePropertyText + propertyName.padRight(25) + "-- Type: " + fieldNode.type
         return classNode.getProperty(propertyName)
     }
 
 
-    private def addOrReplaceNamedQuery(ClassNode classNode, String namedQueryName, String namedQueryQuery) {
+    private static AnnotationNode addOrReplaceNamedQuery(ClassNode classNode, String namedQueryName, String namedQueryQuery) {
         if (!namedQueryName.startsWith(classNode.getNameWithoutPackage())) {
             namedQueryName = classNode.getNameWithoutPackage() + "." + namedQueryName
         }
@@ -206,7 +198,7 @@ public class DomainASTTransformation {
             // remove existingNamedQuery from NamedQueries
             BannerASTUtils.removeNamedQueryFromNamedQueries(namedQueriesNode, existingNamedQuery)
         }
-        if (existingNamedQuery && namedQueriesNode) {
+        if (existingNamedQuery && existingNamedQueriesNode) {
             println "Replace NamedQuery: " + namedQueryName
         } else {
             println "Add NamedQuery: " + namedQueryName
@@ -216,7 +208,7 @@ public class DomainASTTransformation {
     }
 
 
-    private MethodNode makeMethod(ClassNode classNode, String methodSource) {
+    private static MethodNode makeMethod(ClassNode classNode, String methodSource) {
         def errorMessage = ""
         def code = """
                         package $classNode.packageName
@@ -232,7 +224,7 @@ public class DomainASTTransformation {
             def nodes = new AstBuilder().buildFromString(CompilePhase.CLASS_GENERATION, true, code)
             // get text from start of source code that should have the method name
             def methodSourceNameFragment = methodSource.substring(0, methodSource.indexOf("("))
-            result=nodes[1]?.methods.find { method -> methodSourceNameFragment.contains(method.name) }
+            result = nodes[1]?.methods.find {method -> methodSourceNameFragment.contains(method.name)}
 
         } catch (e) {
             errorMessage = e.getMessage()
