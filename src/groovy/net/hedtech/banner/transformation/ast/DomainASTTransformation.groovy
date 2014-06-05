@@ -42,6 +42,7 @@ public class DomainASTTransformation {
             return
         }
         AnnotationNode tableNode = BannerASTUtils.retrieveTable(classNode)
+        println "Replace Table or View name ${tableNode?.members?.name?.text} with ${tableOrViewName}"
         tableNode?.members?.clear()
         tableNode?.addMember('name', new ConstantExpression(tableOrViewName))
     }
