@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rules>
+    <rule id="AstTestLookupClass">
+        <![CDATA[
+[
+    fields: [
+        tstPrimaryKey: [
+            type: "java.lang.String",
+			persistenceProperties: [name:"tst_primary_key"],
+			constraintExpression:
+                """
+                tstPrimaryKey(nullable: false, maxSize: 2)
+                """
+        ]
+    ]
+]
+]]>
+	</rule>
+	
+    <rule id="AstTestLookup2Class">
+        <![CDATA[
+[
+    fields: [
+        tstPrimaryKey1: [
+            type: "java.lang.String",
+			persistenceProperties: [name:"tst_primary_key1"],
+			constraintExpression:
+                """
+                tstPrimaryKey1(nullable: false, maxSize: 2)
+                """
+        ],
+        tstPrimaryKey2: [
+            type: "java.lang.String",
+			persistenceProperties: [name:"tst_primary_key2"],
+			constraintExpression:
+                """
+                tstPrimaryKey2(nullable: false, maxSize: 2)
+                """
+        ],
+    ]
+]
+]]>
+	</rule>
+	
+    <rule id="AstTestClass">
+        <![CDATA[
+[
+    fields: [
+        tstStringVarcharText: [
+            type: "java.lang.String",
+			persistenceProperties: [name:"tst_string"],
+			constraintExpression:
+                """
+                tstStringVarcharText(nullable: false, maxSize: 20, blank: false,
+                    validator: { value, object ->
+                        if (value != null) {
+                            if (value.equals('REJECT'))
+                                return false
+                            return true
+                        }
+                        return true
+                    },
+                    inList: ['A', 'B', 'C'],
+                    matches: '[D-E]')
+                """
+        ],
+		tstIntegerNumber: [
+            type: "java.lang.Integer",
+            persistenceProperties: [name:"tst_integer_number"],
+            constraintExpression: 
+                """ 
+                tstIntegerNumber(nullable: true, min: -999, max: 999)
+                """
+        ],
+        tstLongNumber: [
+            type: "java.lang.Long",
+            persistenceProperties: [name:"tst_long_number"],
+            constraintExpression: 
+                """ 
+                tstLongNumber(nullable: true)
+                """
+        ],
+        tstBigDecNumber: [
+            type: "java.math.BigDecimal",
+            persistenceProperties: [name:"tst_bigdec_number"],
+            constraintExpression: 
+                """ 
+                tstBigDecNumber(nullable: true, min: -9999.999, max: 9999.999, scale: 3, validator: { value, object ->
+                    if (value != null && (value < -9999.999 || value > 9999.999 || value.scale > 3)) 
+                        return "net.hedtech.banner.student.catalog.CourseSyllabusLongCourseTitle.tstBigDecNumber.invalid.number_format"
+                })
+                """
+        ],
+        tstDate: [
+            type: "java.util.Date",
+            persistenceProperties: [name:"tst_date"],
+            temporalType: "TIMESTAMP",
+            constraintExpression: 
+                """ 
+                tstDate(nullable: true, validator: { value, object ->
+				    def today = new Date()
+					if ( value > today ) {
+					    return false
+					}
+				})
+                """
+        ],
+        tstBoolVarcharIndicator: [
+            type: "java.lang.Boolean",
+            persistenceProperties: [name:"tst_bool_varch_ind"],
+            booleanType: "yes_no",
+            constraintExpression: 
+                """ 
+                tstBoolVarcharIndicator(nullable: true)
+                """
+        ],
+        tstLookupClass: [
+            type: "AstTestLookupClass",
+            manyToOneProperties: [[name:"a", referencedColumnName:"a"]],
+            constraintExpression: 
+                """ 
+                tstLookupClass(nullable: false)
+                """
+        ],
+        tstLookup2Class: [
+            type: "AstTestLookup2Class",
+            manyToOneProperties: [[name:"a", referencedColumnName:"a"], [name:"b", referencedColumnName:"b"]],
+            constraintExpression: 
+                """ 
+                tstLookup2Class(nullable: false)
+                """
+        ]
+    ],
+	namedQueries: [
+        "AstTestClass.namedQuery1": 
+            """FROM myTable""",
+        "AstTestClass.namedQuery2": 
+            """FROM myTable2"""			
+   ]
+]
+]]>
+    </rule>
+</rules>
