@@ -1,5 +1,6 @@
 package net.hedtech.banner.transformation.ast
 
+import org.codehaus.groovy.ast.ASTNode
 import org.codehaus.groovy.ast.AnnotationNode
 import org.codehaus.groovy.ast.ClassNode
 import org.codehaus.groovy.ast.FieldNode
@@ -9,6 +10,7 @@ import org.codehaus.groovy.ast.builder.AstBuilder
 import org.codehaus.groovy.ast.expr.AnnotationConstantExpression
 import org.codehaus.groovy.ast.expr.ConstantExpression
 import org.codehaus.groovy.ast.expr.ListExpression
+import org.codehaus.groovy.ast.expr.PropertyExpression
 import org.codehaus.groovy.control.CompilePhase
 import org.hibernate.annotations.Type
 
@@ -26,7 +28,7 @@ public class DomainASTTransformation {
     private static List fieldNameBlackList = ['id'] //, 'lastModified', 'lastModifiedBy', 'version', 'dataOrigin'
 
 
-    static def applyTransformation(ClassNode classNode, Map rules) {
+    static ClassNode applyTransformation(ClassNode classNode, Map rules) {
         if (classNode && rules) {
             applyTransformationForTableOrView(classNode, rules.tableOrView)
             applyTransformationForFields(classNode, rules.fields)
@@ -39,7 +41,7 @@ public class DomainASTTransformation {
     private static void applyTransformationForTableOrView(ClassNode classNode, String tableOrViewName) {
         if (tableOrViewName) {
             AnnotationNode tableNode = BannerASTUtils.retrieveTable(classNode)
-            println "Replace Table or View: ${tableNode?.members?.name?.text} with: ${tableOrViewName}"
+            println "Replace Table or View: ${ tableNode?.members?.name?.text } with: ${ tableOrViewName }"
             tableNode?.members?.clear()
             tableNode?.addMember('name', new ConstantExpression(tableOrViewName))
         }
@@ -70,7 +72,7 @@ public class DomainASTTransformation {
         if (methods) {
             methods.each {String methodSource ->
                 MethodNode methodNode = makeMethod(classNode, methodSource)
-                def existingMethod = classNode.getMethod(methodNode.name, methodNode.parameters)
+                MethodNode existingMethod = classNode.getMethod(methodNode.name, methodNode.parameters)
                 if (existingMethod) {
                     //clone relevant parts
                     existingMethod.setCode(methodNode.code)
@@ -86,7 +88,7 @@ public class DomainASTTransformation {
     }
 
 
-    private static def addOrModifyProperty(ClassNode classNode, String propertyName, Map propertyMetaData) {
+    private static PropertyNode addOrModifyProperty(ClassNode classNode, String propertyName, Map propertyMetaData) {
         boolean existingProperty = BannerASTUtils.isExistingProperty(classNode, propertyName)
 
         if (existingProperty) {
@@ -104,7 +106,7 @@ public class DomainASTTransformation {
     }
 
 
-    private static def addProperty(ClassNode classNode, String propertyName, Map propertyMetaData, boolean existingProperty = false) {
+    private static PropertyNode addProperty(ClassNode classNode, String propertyName, Map propertyMetaData, boolean existingProperty = false) {
         PropertyNode propertyNode = existingProperty ? BannerASTUtils.retrieveProperty(classNode, propertyName) : BannerASTUtils.addProperty(classNode, propertyName, propertyMetaData)
         if (!propertyNode) {
             println "Property $propertyName not created"
@@ -134,7 +136,6 @@ public class DomainASTTransformation {
                 }
                 listExpression.addExpression(new AnnotationConstantExpression(joinColumn))
             }
-
             //add annotation @JoinColumns
             BannerASTUtils.addAnnotationToProperty(propertyNode, JoinColumns.name, [value: listExpression])
         } else if (propertyMetaData.containsKey("oneToOneProperties")) {                               //add annotations @OneToOne, @JoinColumns
@@ -149,18 +150,16 @@ public class DomainASTTransformation {
                 }
                 listExpression.addExpression(new AnnotationConstantExpression(joinColumn))
             }
-
             //add annotation @JoinColumns
             BannerASTUtils.addAnnotationToProperty(propertyNode, JoinColumns.name, [value: listExpression])
         }
 
         if (fieldNode.getType().name == Date.name) {                    //handle @Temporal annotation for java.util.Date
-            def temporalType = propertyMetaData.temporalType ?: "DATE"
-            def expression = new AstBuilder().buildFromString("${ TemporalType.name }.${ temporalType }")?.get(0)?.getStatements()?.get(0)?.getExpression()
-//            def expression = new AstBuilder().buildFromString(CompilePhase.CONVERSION, true, "${TemporalType.name}.${temporalType}")?.get(0)?.getStatements()?.get(0)?.getExpression()
+            String temporalType = propertyMetaData.temporalType ?: "DATE"
+            PropertyExpression expression = new AstBuilder().buildFromString("${ TemporalType.name }.${ temporalType }")?.get(0)?.getStatements()?.get(0)?.getExpression()
             BannerASTUtils.addAnnotationToProperty(propertyNode, Temporal.name, [value: expression])
         } else if (fieldNode.getType().name == Boolean.name) {          //handle @org.hibernate.annotations.Type annotation for java.lang.Boolean
-            def booleanType = propertyMetaData.booleanType ?: "yes_no"
+            String booleanType = propertyMetaData.booleanType ?: "yes_no"
             BannerASTUtils.addAnnotationToProperty(propertyNode, Type.name, [type: booleanType])
         }
 
@@ -205,8 +204,8 @@ public class DomainASTTransformation {
 
 
     private static MethodNode makeMethod(ClassNode classNode, String methodSource) {
-        def errorMessage = ""
-        def code = """
+        String errorMessage = ""
+        String code = """
                         package $classNode.packageName
                         class $classNode.nameWithoutPackage {
                             $methodSource
@@ -217,9 +216,9 @@ public class DomainASTTransformation {
             //It doesn't seem possible to use other Domain classes in methodSource
             //Tried several CompilePhase's but when too early, no methods nodes are generated, when later,
             //an error occurs: Apparent variable 'Department' was found in a static scope but doesn't refer to a local variable.
-            def nodes = new AstBuilder().buildFromString(CompilePhase.CLASS_GENERATION, true, code)
+            List<ASTNode> nodes = new AstBuilder().buildFromString(CompilePhase.CLASS_GENERATION, true, code)
             // get text from start of source code that should have the method name
-            def methodSourceNameFragment = methodSource.substring(0, methodSource.indexOf("("))
+            String methodSourceNameFragment = methodSource.substring(0, methodSource.indexOf("("))
             result = nodes[1]?.methods.find {method -> methodSourceNameFragment.contains(method.name)}
 
         } catch (e) {
