@@ -27,65 +27,60 @@ public class DomainASTTransformation {
 
 
     static def applyTransformation(ClassNode classNode, Map rules) {
-        if (!classNode || !rules) {
-            return
+        if (classNode && rules) {
+            applyTransformationForTableOrView(classNode, rules.tableOrView)
+            applyTransformationForFields(classNode, rules.fields)
+            applyTransformationForNamedQueries(classNode, rules.namedQueries)
+            applyTransformationForMethods(classNode, rules.methods)
         }
-        applyTransformationForTableOrView(classNode, rules.tableOrView)
-        applyTransformationForFields(classNode, rules.fields)
-        applyTransformationForNamedQueries(classNode, rules.namedQueries)
-        applyTransformationForMethods(classNode, rules.methods)
     }
 
 
     private static void applyTransformationForTableOrView(ClassNode classNode, String tableOrViewName) {
-        if (!tableOrViewName) {
-            return
+        if (tableOrViewName) {
+            AnnotationNode tableNode = BannerASTUtils.retrieveTable(classNode)
+            println "Replace Table or View: ${tableNode?.members?.name?.text} with: ${tableOrViewName}"
+            tableNode?.members?.clear()
+            tableNode?.addMember('name', new ConstantExpression(tableOrViewName))
         }
-        AnnotationNode tableNode = BannerASTUtils.retrieveTable(classNode)
-        println "Replace Table or View name ${tableNode?.members?.name?.text} with ${tableOrViewName}"
-        tableNode?.members?.clear()
-        tableNode?.addMember('name', new ConstantExpression(tableOrViewName))
     }
 
 
     private static void applyTransformationForFields(ClassNode classNode, Map fields) {
-        if (!fields) {
-            return
-        }
-        fields.each {String fieldName, Map fieldMetaData ->
-            if (!fieldNameBlackList.contains(fieldName)) {
-                addOrModifyProperty(classNode, fieldName, fieldMetaData)
+        if (fields) {
+            fields.each {String fieldName, Map fieldMetaData ->
+                if (!fieldNameBlackList.contains(fieldName)) {
+                    addOrModifyProperty(classNode, fieldName, fieldMetaData)
+                }
             }
         }
     }
 
 
     private static void applyTransformationForNamedQueries(ClassNode classNode, Map namedQueries) {
-        if (!namedQueries) {
-            return
-        }
-        namedQueries.each {String namedQueryName, String namedQueryQuery ->
-            addOrReplaceNamedQuery(classNode, namedQueryName, namedQueryQuery)
+        if (namedQueries) {
+            namedQueries.each {String namedQueryName, String namedQueryQuery ->
+                addOrReplaceNamedQuery(classNode, namedQueryName, namedQueryQuery)
+            }
         }
     }
 
 
     private static void applyTransformationForMethods(ClassNode classNode, List methods) {
-        if (!methods) {
-            return
-        }
-        methods.each {String methodSource ->
-            MethodNode methodNode = makeMethod(classNode, methodSource)
-            def existingMethod = classNode.getMethod(methodNode.name, methodNode.parameters)
-            if (existingMethod) {
-                //clone relevant parts
-                existingMethod.setCode(methodNode.code)
-                existingMethod.setModifiers(methodNode.modifiers)
-                existingMethod.setVariableScope(methodNode.variableScope)
-                println "Modify method: $methodNode.name($methodNode.parameters.name)"
-            } else {
-                classNode.addMethod(methodNode)
-                println "Add method: $methodNode.name($methodNode.parameters.name)"
+        if (methods) {
+            methods.each {String methodSource ->
+                MethodNode methodNode = makeMethod(classNode, methodSource)
+                def existingMethod = classNode.getMethod(methodNode.name, methodNode.parameters)
+                if (existingMethod) {
+                    //clone relevant parts
+                    existingMethod.setCode(methodNode.code)
+                    existingMethod.setModifiers(methodNode.modifiers)
+                    existingMethod.setVariableScope(methodNode.variableScope)
+                    println "Modify method: $methodNode.name($methodNode.parameters.name)"
+                } else {
+                    classNode.addMethod(methodNode)
+                    println "Add method: $methodNode.name($methodNode.parameters.name)"
+                }
             }
         }
     }
