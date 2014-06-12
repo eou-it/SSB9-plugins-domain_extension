@@ -1,6 +1,6 @@
 package net.hedtech.banner.transformation
 
-import grails.converters.deep.JSON
+
 import groovy.time.TimeCategory
 
 class TransformationRulesFileUtility {
@@ -23,27 +23,30 @@ class TransformationRulesFileUtility {
     }
 
     private static void loadRules(){
-        def t0 = new Date()
-        def xmlParser = new XmlParser()
-        def loadCount = 0
+        Date t0 = new Date()
+        XmlParser xmlParser = null
+        Integer loadCount = 0
         // first time set rules to a not null value, this way system only attempts to load once
         transformationRules = [:]
         //load up to 2 xml files, can be extended to any number without significant change
         for (int i=1; i<3; i++)  {
-            def fileLocation = System.getenv("$envName$i")
+            String fileLocation = System.getenv("$envName$i")
             if (fileLocation){
                 File xmlFile = new File(fileLocation)
                 if (xmlFile.exists()){
-                    def xmlRules = xmlParser.parse(xmlFile)
-                    addRules(convertNode(xmlRules))
+                    if (!xmlParser) {
+                        xmlParser = new XmlParser()
+                    }
+                    addRules(convertNode(xmlParser.parse(xmlFile)))
                     println "Loaded rules from $fileLocation"
                     loadCount++
+                } else {
+                    throw new Exception("Error: file $fileLocation does not exist.")
                 }
             }
         }
-        def t1 = new Date()
         if (loadCount) {
-            println "Loaded metadata in ${TimeCategory.minus(t1, t0)}"
+            println "Loaded metadata in ${TimeCategory.minus(new Date(), t0)}"
         }
         //printMap()
     }
@@ -60,14 +63,14 @@ class TransformationRulesFileUtility {
     }
 
     private static Map convertNode(Node xmlNode)  {
-        Map  groovyRules =[:]
+        Map  groovyRules = [:]
         if (xmlNode instanceof Node) {
-            def shell = new GroovyShell()
+            GroovyShell shell = new GroovyShell()
             for (Node ruleNode : xmlNode.value()) {
-                def domainName = ruleNode.get("@id")
+                String domainName = ruleNode.get("@id")
                 if (domainName) {
-                    def text = ruleNode.value()[0]
-                    def domainRules = shell.evaluate(text)
+                    String text = ruleNode.value()[0]
+                    Map domainRules = shell.evaluate(text)
                     groovyRules << [(domainName): domainRules]
                 }
             }
@@ -79,10 +82,10 @@ class TransformationRulesFileUtility {
         if (!maps?.size())
             throw new Exception("List of metadata must have at least one entry")
         // Use merge method in ConfigObject to merge the maps
-        def result = new ConfigObject()
+        ConfigObject result = new ConfigObject()
         result.putAll(maps[0])
         for (int i = 1; i < maps.size(); i++) {
-            def added = new ConfigObject()
+            ConfigObject added = new ConfigObject()
             added.putAll(maps[i])
             result.merge(added)
         }
