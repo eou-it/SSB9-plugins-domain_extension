@@ -11,6 +11,7 @@ import org.codehaus.groovy.ast.builder.AstBuilder
 import org.codehaus.groovy.ast.expr.AnnotationConstantExpression
 import org.codehaus.groovy.ast.expr.ConstantExpression
 import org.codehaus.groovy.ast.expr.ListExpression
+import org.codehaus.groovy.ast.expr.MethodCallExpression
 import org.codehaus.groovy.ast.stmt.ExpressionStatement
 import org.codehaus.groovy.grails.commons.GrailsDomainClassProperty
 
@@ -100,16 +101,14 @@ class BannerASTUtils extends org.codehaus.groovy.grails.compiler.injection.Grail
     }
 
 
-    static def retrieveProperty(ClassNode classNode, String propertyName) {
-        if (!isExistingProperty(classNode, propertyName)) {
-            return null
+    static PropertyNode retrieveProperty(ClassNode classNode, String propertyName) {
+        if (isExistingProperty(classNode, propertyName)) {
+            return classNode.getProperty(propertyName)
         }
-
-        return classNode.getProperty(propertyName)
     }
 
 
-    static def addProperty(ClassNode classNode, String propertyName, Map propertyMetaData) {
+    static PropertyNode addProperty(ClassNode classNode, String propertyName, Map propertyMetaData) {
         ClassNode newClassNode
         try {
             newClassNode = new ClassNode(ClassUtils.getClass(this.classLoader, propertyMetaData.type))
@@ -127,7 +126,7 @@ class BannerASTUtils extends org.codehaus.groovy.grails.compiler.injection.Grail
     }
 
 
-    static def addAnnotationToProperty(PropertyNode propertyNode, String annotation, Map annotationAttributes) {
+    static AnnotationNode addAnnotationToProperty(PropertyNode propertyNode, String annotation, Map annotationAttributes) {
         FieldNode fieldNode = propertyNode.getField()
         AnnotationNode annotationNode = new AnnotationNode(new ClassNode(ClassUtils.getClass(annotation)))
         annotationAttributes?.each {attribute, value ->
@@ -137,21 +136,20 @@ class BannerASTUtils extends org.codehaus.groovy.grails.compiler.injection.Grail
             }
             annotationNode.addMember(attribute, expression)
         }
-
         fieldNode.addAnnotation(annotationNode)
 
         return annotationNode
     }
 
 
-    static def retrieveConstraintField(ClassNode classNode) {
+    static FieldNode retrieveConstraintField(ClassNode classNode) {
         classNode?.getProperty(GrailsDomainClassProperty.CONSTRAINTS)?.getField()
     }
 
 
-    static def retrieveConstraintExpressionsForProperty(ClassNode classNode, String propertyName) {
-        def expressions = []
-        def constraintsField = retrieveConstraintField(classNode)
+    static ArrayList retrieveConstraintExpressionsForProperty(ClassNode classNode, String propertyName) {
+        ArrayList expressions = []
+        FieldNode constraintsField = retrieveConstraintField(classNode)
         if (constraintsField) {
             expressions = constraintsField.initialValueExpression.getCode().statements.findAll {statement ->
                 statement.expression.method.value == propertyName
@@ -162,19 +160,18 @@ class BannerASTUtils extends org.codehaus.groovy.grails.compiler.injection.Grail
 
 
     static void removeConstraintExpressionsForProperty(ClassNode classNode, String propertyName) {
-        def statements = retrieveConstraintExpressionsForProperty(classNode, propertyName)
+        ArrayList statements = retrieveConstraintExpressionsForProperty(classNode, propertyName)
         if (statements) {
             retrieveConstraintField(classNode).initialValueExpression.getCode().statements.removeAll(statements)
         }
     }
 
 
-    static def retrieveAnnotationForProperty(ClassNode classNode, String propertyName, String annotation) {
-        def temp = retrieveProperty(classNode, propertyName)?.field?.getAnnotations()?.find {annotationNode ->
+    static AnnotationNode retrieveAnnotationForProperty(ClassNode classNode, String propertyName, String annotation) {
+        AnnotationNode annotationForProperty = retrieveProperty(classNode, propertyName)?.field?.getAnnotations()?.find {annotationNode ->
             annotationNode.classNode.name == annotation
         }
-
-        return temp
+        return annotationForProperty
     }
 
 
@@ -184,18 +181,14 @@ class BannerASTUtils extends org.codehaus.groovy.grails.compiler.injection.Grail
 
 
     static void addConstraintsForProperty(ClassNode classNode, String propertyName, constraintExpressionSource) {
-        if (!classNode || StringUtils.isBlank(propertyName) || StringUtils.isBlank(constraintExpressionSource)) {
-            return
-        }
-
-        def statements = retrieveProperty(classNode, GrailsDomainClassProperty.CONSTRAINTS)?.field?.getInitialExpression()?.getCode()?.getStatements()
-        if (!statements) {
-            return
-        }
-
-        def expression = new AstBuilder().buildFromString(constraintExpressionSource)?.get(0)?.getStatements()?.get(0)?.getExpression()
-        if (expression) {
-            statements.add(new ExpressionStatement(expression))
+        if (classNode && !StringUtils.isBlank(propertyName) && !StringUtils.isBlank(constraintExpressionSource)) {
+            ArrayList statements = retrieveProperty(classNode, GrailsDomainClassProperty.CONSTRAINTS)?.field?.getInitialExpression()?.getCode()?.getStatements()
+            if (statements) {
+                MethodCallExpression expression = new AstBuilder().buildFromString(constraintExpressionSource)?.get(0)?.getStatements()?.get(0)?.getExpression()
+                if (expression) {
+                    statements.add(new ExpressionStatement(expression))
+                }
+            }
         }
     }
 }
