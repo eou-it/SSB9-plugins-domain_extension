@@ -7,22 +7,16 @@ eventCompileStart = {target ->
 //eventSetClassPath = { target ->
 //eventPackagingEnd = { target ->
 //eventCreatePluginArchiveStart = { stagingDir ->
-    if (target.args=="ast")
-        compileAST(basedir)
-}
-
-def pluginBaseDir(dir ) {
-    def result = "$dir/plugins/domain_extension.git".replace('\\','/')
-    if (dir.endsWith("domain_extension.git"))
-        result=dir
-    return result
+    if (target.args=="ast" || new File("${basedir}/lib/bannerTransform.jar").exists()==false )
+        compileAST()
 }
 
 
-def compileAST(def srcBaseDir) {
-    def pluginBasedir=pluginBaseDir(srcBaseDir)
+def compileAST() {
+    def pluginBasedir=domainExtensionPluginDir.toString().replace('\\','/')
     def destDir="$pluginBasedir/target/classes"
     println "AST compile -> $destDir ... "
+    ant.delete(dir: destDir)
     ant.mkdir dir: destDir
     //Delete so compiler doesn't do this AST
     //ant.delete(file:"${pluginBasedir}/lib/bannerTransform.jar")
@@ -39,6 +33,7 @@ def compileAST(def srcBaseDir) {
     ant.copy(todir: "${destDir}/META-INF")  {
         fileset(dir:"${pluginBasedir}/templates/META-INF")
     }
-    ant.jar ( destfile : "${pluginBasedir}/lib/bannerTransform.jar" , basedir : destDir)
+    ant.jar ( destfile : "${basedir}/lib/bannerTransform.jar" , basedir : destDir)
+    ant.delete(dir: destDir)
 
 }
