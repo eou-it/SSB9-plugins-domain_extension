@@ -41,7 +41,7 @@ public class DomainASTTransformation {
     private static void applyTransformationForTableOrView(ClassNode classNode, String tableOrViewName) {
         if (tableOrViewName) {
             AnnotationNode tableNode = BannerASTUtils.retrieveTable(classNode)
-            println "Replace Table or View: ${ tableNode?.members?.name?.text } with: ${ tableOrViewName }"
+            println "Replace Table/View: ${ tableNode?.members?.name?.text } with: ${ tableOrViewName }"
             tableNode?.members?.clear()
             tableNode?.addMember('name', new ConstantExpression(tableOrViewName))
         }
@@ -78,10 +78,10 @@ public class DomainASTTransformation {
                     existingMethod.setCode(methodNode.code)
                     existingMethod.setModifiers(methodNode.modifiers)
                     existingMethod.setVariableScope(methodNode.variableScope)
-                    println "Modify method: $methodNode.name($methodNode.parameters.name)"
+                    println "Modify method:      $methodNode.name($methodNode.parameters.name)"
                 } else {
                     classNode.addMethod(methodNode)
-                    println "Add method: $methodNode.name($methodNode.parameters.name)"
+                    println "Add method:         $methodNode.name($methodNode.parameters.name)"
                 }
             }
         }
@@ -164,7 +164,7 @@ public class DomainASTTransformation {
         }
 
         BannerASTUtils.addConstraintsForProperty(classNode, propertyName, propertyMetaData.constraintExpression)
-        String addOrReplacePropertyText = existingProperty ? "Replace property: " : "Add property:     "
+        String addOrReplacePropertyText = existingProperty ? "Replace property:   " : "Add property:       "
         println addOrReplacePropertyText + propertyName.padRight(25) + "-- Type: " + fieldNode.type
         return classNode.getProperty(propertyName)
     }
@@ -196,7 +196,7 @@ public class DomainASTTransformation {
         if (existingNamedQuery && existingNamedQueriesNode) {
             println "Replace NamedQuery: " + namedQueryName
         } else {
-            println "Add NamedQuery: " + namedQueryName
+            println "Add NamedQuery:     " + namedQueryName
         }
         // create new NamedQuery based on values from XML
         BannerASTUtils.addNamedQueryToNamedQueries(namedQueriesNode, namedQueryName, namedQueryQuery)
