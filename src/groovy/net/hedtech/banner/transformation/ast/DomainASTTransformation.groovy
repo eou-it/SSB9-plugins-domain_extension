@@ -209,8 +209,10 @@ public class DomainASTTransformation {
 
     private static MethodNode makeMethod(ClassNode classNode, String methodSource) {
         String errorMessage = ""
+        String packageText = (classNode?.packageName) ? "package $classNode.packageName" : ""
+
         String code = """
-                        package $classNode.packageName
+                        $packageText
                         class $classNode.nameWithoutPackage {
                             $methodSource
                         }
