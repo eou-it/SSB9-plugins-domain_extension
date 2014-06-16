@@ -4,7 +4,7 @@
 
 class DomainExtensionGrailsPlugin {
     // the plugin version
-    def version = "0.1"
+    def version = "1.0"
     // the version or versions of Grails the plugin is designed for
     def grailsVersion = "2.2.1 > *"
     // the other plugins this plugin depends on
@@ -19,7 +19,7 @@ class DomainExtensionGrailsPlugin {
     def authorEmail = ""
     def title = "Domain Extension Tool"
     def description = '''\\
-This tool uses AST Transformation to modify Grails Domain classes based on XML Metadata
+This tool uses Global AST Transformation to modify Grails Domain classes based on XML Metadata
 '''
 
     // URL to the plugin's documentation
