@@ -14,11 +14,11 @@
         ]
     ],
     methods: [
-            [
-                    name  : "methodA",
-                    source: "methodASource"
-            ]
-
+             """
+             def fetchByName(String name) {
+                return []
+             }
+             """
     ]
 ]
 ]]>

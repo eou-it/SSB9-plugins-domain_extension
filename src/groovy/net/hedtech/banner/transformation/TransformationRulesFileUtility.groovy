@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014 Ellucian Company L.P. and its affiliates.
+ */
+
 package net.hedtech.banner.transformation
 
 
@@ -5,7 +9,7 @@ import groovy.time.TimeCategory
 
 class TransformationRulesFileUtility {
 
-    private static final def envName = 'BANNER_TRANSFORMATION'
+    private static final String envName = 'BANNER_TRANSFORMATION'
     private static Map transformationRules = null
 
     static boolean transformationRulesExist() {
