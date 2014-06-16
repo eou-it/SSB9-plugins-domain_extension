@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014 Ellucian Company L.P. and its affiliates.
+ */
+
 package net.hedtech.banner.transformation
 
 import grails.test.mixin.*

@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2014 Ellucian Company L.P. and its affiliates.
+  -->
+
 <rules>
     <rule id="AstTestLookupClass">
         <![CDATA[

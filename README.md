@@ -1,3 +1,6 @@
+<!--- 
+Copyright 2014 Ellucian Company L.P. and its affiliates. 
+-->
 #Global AST Transformation - Banner Domain Extension Tool.
 Initial version created by Amrit for Grails 1.3.7
 

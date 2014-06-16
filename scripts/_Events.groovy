@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014 Ellucian Company L.P. and its affiliates.
+ */
+
 eventCompileStart = {target ->
 //eventCompileEnd = {target ->
 //eventSetClassPath = { target ->

@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014 Ellucian Company L.P. and its affiliates.
+ */
+
 class DomainExtensionGrailsPlugin {
     // the plugin version
     def version = "0.1"
@@ -11,11 +15,11 @@ class DomainExtensionGrailsPlugin {
     ]
 
     // TODO Fill in these fields
-    def author = "Your name"
+    def author = "Ellucian"
     def authorEmail = ""
-    def title = "Plugin summary/headline"
+    def title = "Domain Extension Tool"
     def description = '''\\
-Brief description of the plugin.
+This tool uses AST Transformation to modify Grails Domain classes based on XML Metadata
 '''
 
     // URL to the plugin's documentation
