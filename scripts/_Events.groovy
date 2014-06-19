@@ -34,6 +34,4 @@ def compileAST() {
         fileset(dir:"${pluginBasedir}/templates/META-INF")
     }
     ant.jar ( destfile : "${basedir}/lib/bannerTransform.jar" , basedir : destDir)
-    ant.delete(dir: destDir)
-
 }
