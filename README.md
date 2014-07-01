@@ -21,3 +21,19 @@ This is not a standard Banner project and some special steps need documentation.
     2. grails clean
     3. grails compile all
     4. grails test-app integration: -echoOut
+
+##Documentation
+* Go to the Ellucian Client Support web site: http://www.ellucian.com/Solutions/Ellucian-Client-Support.
+
+* Click the Ellucian Hub button to log in to the Ellucian Hub.
+
+* Choose the Ellucian Support Center application.
+
+* Documentation for the Domain Extension Tool is in the Banner Extensibility library
+
+##Example XML files
+Some example XML files with transformation rules used in testing are included in the domain_extension plugin source:
+
+* test/ast-definition/banner-transformation-rules1.xml
+* test/ast-definition/test-base.xml
+* test/ast-definition/test-additional.xml
