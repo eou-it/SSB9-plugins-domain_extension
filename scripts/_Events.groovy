@@ -2,15 +2,29 @@
  * Copyright 2014 Ellucian Company L.P. and its affiliates.
  */
 
+// Create the bannerTransform.jar file
 eventCompileStart = {target ->
-//eventCompileEnd = {target ->
-//eventSetClassPath = { target ->
-//eventPackagingEnd = { target ->
-//eventCreatePluginArchiveStart = { stagingDir ->
     if (target.args=="ast" || new File("${basedir}/lib/bannerTransform.jar").exists()==false )
         compileAST()
+
 }
 
+// Clean up files from stagingDir - DET doesn't have to be in War
+eventCreateWarStart = { warName, stagingDir ->
+    println "Remove Domain Extension Tool artifacts from staging area"
+    /* Tried to match on directory name without version like below:
+    ant.delete(){
+        ant.dirset( dir: "${stagingDir}/WEB-INF/plugins/", includes : "domain-extension-*")
+    }
+    Doesn't seem to work, use Groovy File methods instead
+    */
+    new File("${stagingDir}/WEB-INF/plugins/").eachDirMatch(~/domain-extension-.*/){
+        it.deleteDir()
+    }
+    ant.delete(){fileset dir: "${stagingDir}/WEB-INF/classes/", includes:"**/DomainExtensionGrailsPlugin*.class" }
+    ant.delete(includeEmptyDirs: true) { fileset dir: "${stagingDir}/WEB-INF/classes/net/hedtech/banner/transformation/" }
+    ant.delete(file: "${stagingDir}/WEB-INF/lib/bannerTransform.jar")
+}
 
 def compileAST() {
     def pluginBasedir=domainExtensionPluginDir.toString().replace('\\','/')

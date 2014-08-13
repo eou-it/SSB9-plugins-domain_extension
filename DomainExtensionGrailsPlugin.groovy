@@ -6,13 +6,17 @@ class DomainExtensionGrailsPlugin {
     // the plugin version
     def version = "1.0"
     // the version or versions of Grails the plugin is designed for
-    def grailsVersion = "2.2.1 > *"
+    def grailsVersion = "2.3.7 > *"
     // the other plugins this plugin depends on
     def dependsOn = [:]
     // resources that are excluded from plugin packaging
     def pluginExcludes = [
             "grails-app/views/error.gsp"
     ]
+	
+	// Next line is supposed to exclude the plugin from the war file
+    // It seems to exclude plugins/domain-extension-1.0, but not other artifacts
+    def scopes = [excludes:'war']
 
     // TODO Fill in these fields
     def author = "Ellucian"
