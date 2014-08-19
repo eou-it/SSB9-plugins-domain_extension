@@ -21,7 +21,9 @@ eventCreateWarStart = { warName, stagingDir ->
     new File("${stagingDir}/WEB-INF/plugins/").eachDirMatch(~/domain-extension-.*/){
         it.deleteDir()
     }
-    ant.delete(){fileset dir: "${stagingDir}/WEB-INF/classes/", includes:"**/DomainExtensionGrailsPlugin*.class" }
+    //When removing the next classes, the war cannot be deployed
+    //There seems to be a bug in the war building in that it doesn't exclude the plugin init when war is not in scope
+    //ant.delete(){fileset dir: "${stagingDir}/WEB-INF/classes/", includes:"**/DomainExtensionGrailsPlugin*.class" }
     ant.delete(includeEmptyDirs: true) { fileset dir: "${stagingDir}/WEB-INF/classes/net/hedtech/banner/transformation/" }
     ant.delete(file: "${stagingDir}/WEB-INF/lib/bannerTransform.jar")
 }
