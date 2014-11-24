@@ -55,7 +55,7 @@ target(main: "List XE Domains and Tables") {
 
     plugins.eachDir { plugin ->
         if ( plugin.isDirectory() ) {
-            def pluginName   = plugin.toString().split("/")[-1]
+            def pluginName = plugin.toString().split(File.pathSeparatorChar)[-1]
 
             def srcfolder = plugin.toString() + '/src/groovy/net/hedtech/banner'
             def srcDir = new File(srcfolder)
