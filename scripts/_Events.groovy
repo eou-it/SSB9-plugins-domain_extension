@@ -4,7 +4,7 @@
 
 // Create the bannerTransform.jar file
 eventCompileStart = {target ->
-    if (target.args=="ast" || new File("${basedir}/lib/bannerTransform.jar").exists()==false )
+    if (target.args=="ast" || new File("${basedir}/plugins/banner_core.git/lib/bannerTransform.jar").exists()==false )
         compileAST()
 
 }
@@ -49,5 +49,5 @@ def compileAST() {
     ant.copy(todir: "${destDir}/META-INF")  {
         fileset(dir:"${pluginBasedir}/templates/META-INF")
     }
-    ant.jar ( destfile : "${basedir}/lib/bannerTransform.jar" , basedir : destDir)
+    ant.jar ( destfile : "${basedir}/plugins/banner_core.git/lib/bannerTransform.jar" , basedir : destDir)
 }
