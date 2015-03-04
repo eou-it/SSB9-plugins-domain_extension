@@ -4,9 +4,12 @@
 
 // Create the bannerTransform.jar file
 eventCompileStart = {target ->
-    if (target.args=="ast" || new File("${basedir}/plugins/banner_core.git/lib/bannerTransform.jar").exists()==false )
-        compileAST()
-
+    def jarDir = "${basedir}/plugins/banner_core.git";
+    if (basedir == domainExtensionPluginDir.toString()) {
+        jarDir = basedir;
+    }
+    if (target.args=="ast" || !new File("${jarDir}/lib/bannerTransform.jar").exists() )
+        compileAST(jarDir)
 }
 
 // Clean up files from stagingDir - DET doesn't have to be in War
@@ -28,14 +31,12 @@ eventCreateWarStart = { warName, stagingDir ->
     ant.delete(file: "${stagingDir}/WEB-INF/lib/bannerTransform.jar")
 }
 
-def compileAST() {
+def compileAST(jarDir) {
     def pluginBasedir=domainExtensionPluginDir.toString().replace('\\','/')
     def destDir="$pluginBasedir/target/classes"
-    println "AST compile -> $destDir ... "
+    jarDir = jarDir.toString().replace('\\','/')
     ant.delete(dir: destDir)
     ant.mkdir dir: destDir
-    //Delete so compiler doesn't do this AST
-    //ant.delete(file:"${pluginBasedir}/lib/bannerTransform.jar")
     ant.sequential {
         path id: "grails.compile.classpath", compileClasspath
         def classpathId = "grails.compile.classpath"
@@ -49,5 +50,6 @@ def compileAST() {
     ant.copy(todir: "${destDir}/META-INF")  {
         fileset(dir:"${pluginBasedir}/templates/META-INF")
     }
-    ant.jar ( destfile : "${basedir}/plugins/banner_core.git/lib/bannerTransform.jar" , basedir : destDir)
+    ant.jar ( destfile : "${jarDir}/lib/bannerTransform.jar" , basedir : destDir)
+    println "Global AST jar file: ${jarDir}/lib/bannerTransform.jar"
 }
