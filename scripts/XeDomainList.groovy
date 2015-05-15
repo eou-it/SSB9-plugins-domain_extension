@@ -1,7 +1,7 @@
 import org.apache.oro.io.GlobFilenameFilter
 
 /*******************************************************************************
- Copyright 2014 Ellucian Company L.P. and its affiliates.
+ Copyright 2014 - 2015 Ellucian Company L.P. and its affiliates.
  *******************************************************************************/
 target(main: "List XE Domains and Tables") {
 
@@ -13,7 +13,7 @@ target(main: "List XE Domains and Tables") {
     output.write "<!DOCTYPE html>${ln}"
     output.append "<html>${ln}"
     output.append "<body>${ln}"
-    output.append""" <head>
+    output.append """ <head>
                       <title>Domain Table Entity Report</title>
                       <style type="text/css">
                             .report {
@@ -52,17 +52,17 @@ target(main: "List XE Domains and Tables") {
 
     def plugins = new File(System.properties['base.dir'] + "/plugins")
 
-
     plugins.eachDir { plugin ->
-        if ( plugin.isDirectory() ) {
-            def pluginName = plugin.toString().split(File.pathSeparatorChar)[-1]
+        if (plugin.isDirectory()) {
+
+            def pluginName = plugin.toString().split(File.pathSeparatorChar as String)[-1]
 
             def srcfolder = plugin.toString() + '/src/groovy/net/hedtech/banner'
             def srcDir = new File(srcfolder)
             if (srcDir.isDirectory()) {
-                domains = listDir(srcDir,   pluginName )
+                domains = listDir(srcDir, pluginName)
             }
-            if ( domains.size()) {
+            if (domains.size()) {
                 output.append "<h2>${ln}Plugin ${pluginName}<h2>${ln}"
                 output.append """<table class="report report-horizontal report-highlight">${ln}"""
                 output.append "<thead>${ln}"
@@ -93,29 +93,56 @@ target(main: "List XE Domains and Tables") {
 setDefaultTarget "main"
 
 
-def listDir(def dir,   def pluginName) {
+def listDir(def dir, def pluginName) {
     List domains = []
     dir.eachFileRecurse { src ->
         if (src.isDirectory()) {
             groovylist = dir.listFiles(new GlobFilenameFilter('*.groovy') as FilenameFilter)
             if (groovylist.size() > 0) {
                 groovylist.each {
-                   def rec =  reportFile(it, pluginName)
-                   if ( rec ) domains << rec
+                    // println "groovy file 1 ${it}"
+                    def rec = reportFile(it, pluginName)
+                    if (rec) {
+                        if (!domains.find { it.tableName == rec.tableName }) {
+                            domains.add(rec)
+                        }
+                    }
                 }
             } else {
                 List subDomains = []
                 subDomains = listDir(src, pluginName)
-                if ( subDomains.size() > 0 ){
-                    domains.addAll(subDomains)
+                if (subDomains.size() > 0) {
+                    subDomains.each { sub ->
+                        if (!domains.find { it.tableName == sub.tableName }) {
+                            domains.add(sub)
+                        }
+                    }
+
                 }
             }
         } else {
+
             if (src.isFile()) {
                 def ext = src.name.tokenize('.')[-1]
                 if (ext == "groovy") {
-                   def rec =  reportFile(src, pluginName)
-                   if ( rec ) domains << rec
+                    def rec = reportFile(src, pluginName)
+                    if (rec) {
+                        if (!domains.find { it.tableName == rec.tableName }) {
+                            domains.add(rec)
+                        }
+                    }
+                }
+            }
+            else {
+                List subDomains = []
+                subDomains = listDir(src, pluginName)
+                if (subDomains.size() > 0) {
+                    subDomains.each { sub ->
+                        if (!domains.find { it.tableName == sub.tableName }) {
+                            domains.add(sub)
+                        }
+                    }
+
                 }
             }
         }
@@ -124,29 +151,27 @@ def listDir(def dir,   def pluginName) {
 }
 
 
-
 def reportFile(fileName, pluginName) {
     def parentDir = fileName.parent
-    def className  =  fileName.name.tokenize(".")[0]
+    def className = fileName.name.tokenize(".")[0]
     def ext = fileName.name.tokenize('.')[-1]
     def packageName
     def tableName
     fileName.eachLine { line ->
-        if ( line =~ "package" && line =~ "net.hedtech.banner"){
+        if (line =~ "package" && line =~ "net.hedtech.banner") {
             def stPack = line.indexOf("net.hedtech.banner")
-            if ( stPack ) packageName = line.substring(stPack)
+            if (stPack) packageName = line.substring(stPack)
         }
-        if ( line =~ "@Table"){
+        if (line =~ "@Table") {
             def st = line.indexOf("\"")
-            if ( st ) {
+            if (st) {
                 def tab1 = line.substring(st + 1)
                 tableName = tab1.replace("\"", "").replace(")", "")
             }
         }
     }
-    if ( packageName && tableName) {
-        return [pluginName: pluginName, package:  packageName , className:  className , tableName:  tableName ]
-    }
-    else return ""
+    if (packageName && tableName) {
+        return [pluginName: pluginName, package: packageName, className: className, tableName: tableName]
+    } else return ""
 }
 
