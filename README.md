@@ -1,5 +1,5 @@
-<!--- 
-Copyright 2014 Ellucian Company L.P. and its affiliates. 
+<!---
+Copyright 2015 Ellucian Company L.P. and its affiliates.
 -->
 #Global AST Transformation - Banner Domain Extension Tool.
 
@@ -15,12 +15,19 @@ This is not a standard Banner project and some special steps need documentation.
     3. grails clean
     4. grails compile all
     5. grails test-app unit: -echoOut
-    
+
 * Execute Integration test
     1. set environment variable  BANNER_TRANSFORMATION1=test/ast-definition/banner-transformation-rules1.xml
     2. grails clean
     3. grails compile all
     4. grails test-app integration: -echoOut
+
+* Execute All tests (for test automation, the rules in banner-transformation-rules1.xml file have been added to the test-base.xml)
+    1. set environment variable  BANNER_TRANSFORMATION1=test/ast-definition/test-base.xml
+    2. set environment variable  BANNER_TRANSFORMATION2=test/ast-definition/test-additional.xml
+    3. grails clean all
+    4. grails compile all
+    5. grails test-app -echoOut
 
 ##Documentation
 * Go to the Ellucian Client Support web site: http://www.ellucian.com/Solutions/Ellucian-Client-Support.
