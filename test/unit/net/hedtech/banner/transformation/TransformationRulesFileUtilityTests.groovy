@@ -6,6 +6,10 @@ package net.hedtech.banner.transformation
 
 import grails.test.mixin.*
 import grails.test.mixin.support.*
+import org.junit.After
+import org.junit.Before
+import org.junit.Test
+
 /*
 To run this unit test, 2 environment variables are required.
 BANNER_TRANSFORMATION1=test/ast-definition/test-base.xml
@@ -15,14 +19,18 @@ in the IDE or environment.
  */
 @TestMixin(GrailsUnitTestMixin)
 class TransformationRulesFileUtilityTests {
-    void setUp() {
+
+    @Before
+    public void setUp() {
         // Setup logic here
     }
 
-    void tearDown() {
+    @After
+    public void tearDown() {
         // Tear down logic here
     }
 
+    @Test
     void testMergeMetaData() {
         def base = [
                 fields: [
@@ -66,6 +74,7 @@ class TransformationRulesFileUtilityTests {
     }
 
     //This test loads 2 xml files and checks if merged correctly
+    @Test
     void testRulesForClass() {
         def e1=TransformationRulesFileUtility.rulesForClass("ast.domain.ext.Employee")
         def e2=TransformationRulesFileUtility.rulesForClass("Emp")

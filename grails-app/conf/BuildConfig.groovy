@@ -32,10 +32,7 @@ grails.project.dependency.resolution = {
 
     plugins {
         runtime  ":hibernate:3.6.10.10"
-        test ':code-coverage:2.0.3-2',
-          {
-              excludes 'xercesImpl'
-          }
+        test ':code-coverage:2.0.3-3'
     }
 
 
