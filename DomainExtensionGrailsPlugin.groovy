@@ -4,7 +4,7 @@
 
 class DomainExtensionGrailsPlugin {
     // the plugin version
-    def version = "1.1"
+    def version = "9.14"
     // Next line is supposed to exclude the plugin from the war file
     // It seems to exclude plugins/domain-extension-1.0, but not other artifacts
     //def scopes = [excludes:['war','run']]
