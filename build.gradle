@@ -50,6 +50,11 @@ dependencies {
     testCompile "org.grails:grails-gorm-testing-support"
     testCompile "org.grails:grails-plugin-testing"
     testCompile "org.grails:grails-web-testing-support"
+    //added for Grails 3 migration
+    compile "oro:oro:2.0.8"
+    //Added for Grails-3
+    compile "org.grails.plugins:hibernate5"
+    compile "org.hibernate:hibernate-core:5.1.5.Final"
 }
 
 bootRun {

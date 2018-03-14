@@ -17,7 +17,7 @@ import org.codehaus.groovy.ast.expr.ConstantExpression
 import org.codehaus.groovy.ast.expr.ListExpression
 import org.codehaus.groovy.ast.expr.MethodCallExpression
 import org.codehaus.groovy.ast.stmt.ExpressionStatement
-import org.codehaus.groovy.grails.commons.GrailsDomainClassProperty
+import grails.core.GrailsDomainClassProperty
 
 import javax.persistence.NamedQueries
 import javax.persistence.NamedQuery
@@ -26,7 +26,7 @@ import javax.persistence.Table
 import static org.springframework.asm.Opcodes.ACC_PRIVATE
 import static org.springframework.asm.Opcodes.ACC_PUBLIC
 
-class BannerASTUtils extends org.codehaus.groovy.grails.compiler.injection.GrailsASTUtils {
+class BannerASTUtils extends org.grails.compiler.injection.GrailsASTUtils {
 
     static AnnotationNode retrieveTable(ClassNode classNode) {
         AnnotationNode tableNode = classNode.getAnnotations().find {
