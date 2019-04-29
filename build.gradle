@@ -22,6 +22,13 @@ apply plugin:"org.grails.grails-gsp"
 repositories {
     mavenLocal()
     maven { url "https://repo.grails.org/grails/core" }
+
+    if (System.properties['PROXY_SERVER_NAME']) {
+        maven {url "${System.properties['PROXY_SERVER_NAME']}"}
+    }
+    
+    maven { url "https://code.lds.org/nexus/content/groups/main-repo" }
+    maven { url "http://repository.jboss.org/maven2/" }
 }
 
 dependencies {
@@ -55,6 +62,11 @@ dependencies {
     //Added for Grails-3
     compile "org.grails.plugins:hibernate5"
     compile "org.hibernate:hibernate-core:5.1.5.Final"
+    //compile "javax.persistence:persistence-api:1.0.2"
+    compile files("lib/lib/javax.persistence.jar")
+    
+    //compile file("build/classes/main/net/hedtech/banner/transformation")
+
 }
 
 bootRun {
@@ -82,3 +94,26 @@ grailsPublish {
 assets {
     packagePlugin = true
 }
+
+classes {
+    doLast {
+        def basedir = System.getProperty('user.dir')
+        def filePath = "${basedir}/plugins/banner_core.git/lib/bannerTransform.jar"
+        def file = new File(filePath)
+        if(file.exists()){
+            ant.delete(dir: file)
+        }
+        def domainExtensionPluginDir = "${basedir}/plugins/domain_extension.git";
+        def pluginBasedir = domainExtensionPluginDir.toString().replace('\\', '/')
+        def destDir = "build/classes/main"
+        destDir = destDir.toString().replace('\\', '/')
+        def jarDir = "${basedir}/plugins/banner_core.git";
+        ant.copy(todir: "${destDir}/META-INF/services") {
+            fileset(dir: "${pluginBasedir}/grails-app/conf/services")
+        }
+        ant.jar(destfile: "${jarDir}/lib/bannerTransform.jar", basedir: destDir)
+        ant.path(id: 'classpath', location: 'lib/javax.persistence.jar')
+        println "Global AST jar file: ${jarDir}/lib/bannerTransform.jar"
+    }
+}
+

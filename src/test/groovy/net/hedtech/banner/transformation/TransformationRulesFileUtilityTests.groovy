@@ -17,7 +17,7 @@ BANNER_TRANSFORMATION2=test/ast-definition/test-additional.xml
 Since it is impossible or very difficult to set environment variables within the test, they have to be set
 in the IDE or environment.
  */
-@TestMixin(GrailsUnitTestMixin)
+//@TestMixin(GrailsUnitTestMixin)
 class TransformationRulesFileUtilityTests {
 
     @Before
