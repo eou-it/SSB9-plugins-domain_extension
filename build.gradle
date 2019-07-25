@@ -65,7 +65,7 @@ dependencies {
     //compile "javax.persistence:persistence-api:1.0.2"
     compile files("lib/lib/javax.persistence.jar")
     
-    //compile file("build/classes/main/net/hedtech/banner/transformation")
+    compile file("build/classes/main/net/hedtech/banner/transformation")
 
 }
 
@@ -116,4 +116,3 @@ classes {
         println "Global AST jar file: ${jarDir}/lib/bannerTransform.jar"
     }
 }
-
