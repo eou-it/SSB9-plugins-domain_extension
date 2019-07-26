@@ -64,8 +64,9 @@ dependencies {
     compile "org.hibernate:hibernate-core:5.1.5.Final"
     //compile "javax.persistence:persistence-api:1.0.2"
     compile files("lib/lib/javax.persistence.jar")
+    compile files("bannerTransform.jar")
     
-    compile file("build/classes/main/net/hedtech/banner/transformation")
+    //compile file("build/classes/main/net/hedtech/banner/transformation/ast")
 
 }
 
@@ -98,6 +99,7 @@ assets {
 classes {
     doLast {
         def basedir = System.getProperty('user.dir')
+        println("===Dir Path==="+basedir)
         def filePath = "${basedir}/plugins/banner_core.git/lib/bannerTransform.jar"
         def file = new File(filePath)
         if(file.exists()){
@@ -105,7 +107,7 @@ classes {
         }
         def domainExtensionPluginDir = "${basedir}/plugins/domain_extension.git";
         def pluginBasedir = domainExtensionPluginDir.toString().replace('\\', '/')
-        def destDir = "build/classes/main"
+        def destDir = "${pluginBasedir}/build/classes/main"
         destDir = destDir.toString().replace('\\', '/')
         def jarDir = "${basedir}/plugins/banner_core.git";
         ant.copy(todir: "${destDir}/META-INF/services") {
