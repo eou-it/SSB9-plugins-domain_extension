@@ -110,9 +110,6 @@ classes {
         def destDir = "${pluginBasedir}/build/classes/main"
         destDir = destDir.toString().replace('\\', '/')
         def jarDir = "${basedir}/plugins/banner_core.git";
-        ant.copy(todir: "${destDir}/META-INF/services") {
-            fileset(dir: "${pluginBasedir}/grails-app/conf/services")
-        }
         ant.jar(destfile: "${jarDir}/lib/bannerTransform.jar", basedir: destDir)
         ant.path(id: 'classpath', location: 'lib/javax.persistence.jar')
         println "Global AST jar file: ${jarDir}/lib/bannerTransform.jar"
