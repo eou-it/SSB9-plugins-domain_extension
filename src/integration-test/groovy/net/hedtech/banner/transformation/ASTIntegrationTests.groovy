@@ -5,7 +5,7 @@
 package net.hedtech.banner.transformation
 
 import org.grails.core.DefaultGrailsDomainClass
-import org.codehaus.groovy.grails.validation.ValidatorConstraint
+import org.grails.validation.ValidatorConstraint
 import javax.persistence.NamedQueries
 import static org.junit.Assert.*
 import org.junit.*

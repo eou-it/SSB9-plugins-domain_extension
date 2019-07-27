@@ -12,8 +12,8 @@ import org.junit.Test
 
 /*
 To run this unit test, 2 environment variables are required.
-BANNER_TRANSFORMATION1=test/ast-definition/test-base.xml
-BANNER_TRANSFORMATION2=test/ast-definition/test-additional.xml
+BANNER_TRANSFORMATION1=testData/ast-definition/test-base.xml
+BANNER_TRANSFORMATION2=testData/ast-definition/test-additional.xml
 Since it is impossible or very difficult to set environment variables within the test, they have to be set
 in the IDE or environment.
  */

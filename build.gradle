@@ -96,25 +96,31 @@ assets {
     packagePlugin = true
 }
 
+//TODO - Create custom command, Compile the files on Demand
 classes {
     doLast {
-        def basedir = System.getProperty('user.dir')
-        println("===Dir Path==="+basedir)
-        def filePath = "${basedir}/plugins/banner_core.git/lib/bannerTransform.jar"
-        def file = new File(filePath)
-        if(file.exists()){
-            ant.delete(dir: file)
+        try {
+            if (new File("build/classes/groovy/main").exists()) {
+                def basedir = System.getProperty('user.dir')
+                println("===In generating AST JAR Dir Path==")
+                def filePath = "build/libs/bannerTransform.jar"
+                def tmpDir = "build/temp"
+                def file = new File(filePath)
+                if (file.exists()) {
+                    ant.delete(dir: file)
+                }
+                ant.copy(todir: tmpDir) {
+                    fileset(dir: "build/classes/groovy/main")
+                }
+                ant.copy(todir: "${tmpDir}/META-INF/services") {
+                    fileset(dir: "grails-app/conf/services")
+                }
+                ant.jar(destfile: "${filePath}", basedir: tmpDir)
+                println "Global AST jar file: build/libs/bannerTransform.jar"
+            }
+        } catch(Exception e) {
+            println "Unable to generate AST JAR"
+            e.stackTrace()
         }
-        def domainExtensionPluginDir = "${basedir}/plugins/domain_extension.git";
-        def pluginBasedir = domainExtensionPluginDir.toString().replace('\\', '/')
-        def destDir = "${pluginBasedir}/build/classes/main"
-        destDir = destDir.toString().replace('\\', '/')
-        def jarDir = "${basedir}/plugins/banner_core.git";
-        ant.copy(todir: "${destDir}/META-INF/services") {
-            fileset(dir: "${pluginBasedir}/grails-app/conf/services")
-        }
-        ant.jar(destfile: "${jarDir}/lib/bannerTransform.jar", basedir: destDir)
-        ant.path(id: 'classpath', location: 'lib/javax.persistence.jar')
-        println "Global AST jar file: ${jarDir}/lib/bannerTransform.jar"
     }
 }

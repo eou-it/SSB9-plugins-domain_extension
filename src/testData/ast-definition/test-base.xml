@@ -1,0 +1,38 @@
+<rules>
+    <rule id="net.hedtech.banner.general.configuration.ConfigApplication">
+        <![CDATA[
+[
+
+    fields: [
+           testField: [
+            persistenceProperties: [name:"GUROCFG_EXT_COL"],
+            type: "java.lang.String",
+            constraintExpression:
+                """
+                testField(nullable: true, maxSize:255)
+                """
+        ]
+    ],
+    namedQueries: [
+        "ConfigApplication.namedQuery1":
+            """FROM GUROCFG""",
+        "ConfigApplication.namedQuery2":
+            """FROM GUROCFG"""
+   ],
+   methods: [
+        """
+                public static List fetchByCode(filter) {
+                   return [1,2,3]
+                }
+        """,
+        """
+                public static List fetchByAnotherCode(filter) {
+                   return [4,5,6]
+                }
+        """
+    ]
+]
+]]>
+
+    </rule>
+</rules>
