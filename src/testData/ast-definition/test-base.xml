@@ -1,5 +1,5 @@
 <rules>
-    <rule id="net.hedtech.banner.general.configuration.ConfigApplication">
+    <rule id="net.hedtech.banner.general.ConfigurationData">
         <![CDATA[
 [
 
@@ -12,25 +12,28 @@
                 testField(nullable: true, maxSize:255)
                 """
         ]
-    ],
-    namedQueries: [
-        "ConfigApplication.namedQuery1":
-            """FROM GUROCFG""",
-        "ConfigApplication.namedQuery2":
-            """FROM GUROCFG"""
-   ],
-   methods: [
+    ]
+     ,
+  methods: [
         """
-                public static List fetchByCode(filter) {
-                   return [1,2,3]
-                }
-        """,
-        """
-                public static List fetchByAnotherCode(filter) {
-                   return [4,5,6]
-                }
+            public String toString() {
+                return 'ConfigurationData{' +
+                'id=' + id +
+                ', name=' + name + '\' +
+                ', testField=' + testField + '\' +
+                ', type=' + type + '\' +
+                ', value=' + value + '\' +
+                ', version=' + version +
+                ', lastModifiedBy=' + lastModifiedBy + '\' +
+                ', dataOrigin='+ dataOrigin + '\' +
+                ', appId=' + appId + '\' +
+                ', lastModified=' + lastModified +
+                '}'
+            }
         """
     ]
+
+
 ]
 ]]>
 
