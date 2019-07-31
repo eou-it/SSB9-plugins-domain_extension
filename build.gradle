@@ -9,7 +9,7 @@ buildscript {
     }
 }
 
-version "0.1"
+version "9.32"
 group "domain.extension"
 
 apply plugin:"eclipse"
