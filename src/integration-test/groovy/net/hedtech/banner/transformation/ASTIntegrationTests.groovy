@@ -1,19 +1,33 @@
 /*
- * Copyright 2014 Ellucian Company L.P. and its affiliates.
+ * Copyright 2014-2019 Ellucian Company L.P. and its affiliates.
  */
 
 package net.hedtech.banner.transformation
 
+import domain.extension.Application
+import grails.core.GrailsApplication
+import grails.testing.mixin.integration.Integration
+import grails.transaction.Rollback
+import grails.util.Holders
 import org.grails.core.DefaultGrailsDomainClass
-import org.codehaus.groovy.grails.validation.ValidatorConstraint
+import org.grails.core.io.support.GrailsFactoriesLoader
+import org.grails.datastore.mapping.model.MappingContext
+import org.grails.datastore.mapping.model.PersistentEntity
+import org.grails.datastore.mapping.model.PersistentProperty
+import org.grails.validation.ValidatorConstraint
+import org.grails.validation.discovery.ConstrainedDiscovery
+import org.hibernate.mapping.PersistentClass
+
 import javax.persistence.NamedQueries
 import static org.junit.Assert.*
 import org.junit.*
 
-class ASTIntegrationTests {
+@Integration(applicationClass = Application.class)
+@Rollback
+class ASTIntegrationTests{
 
     def                      grailsApplication
-    def                      classLoader
+    GroovyClassLoader        loader
     String                   astTestClassDefinition
     String                   astTestLookupClassDefinition
     String                   astTestLookup2ClassDefinition
@@ -23,17 +37,17 @@ class ASTIntegrationTests {
     Class                    astTestClass
     Class                    astTestLookupClass
     Class                    astTestLookup2Class
-    DefaultGrailsDomainClass astTestDomainClass
-    DefaultGrailsDomainClass astTestLookupDomainClass
-    DefaultGrailsDomainClass astTestLookup2DomainClass
+    PersistentEntity         astTestDomainClass
+    PersistentEntity         astTestLookupDomainClass
+    PersistentEntity         astTestLookup2DomainClass
     Map                      astTestConstrainedProperties
     Map                      astTestLookupConstrainedProperties
     Map                      astTestLookup2ConstrainedProperties
 
     @Before
     void setUp() {
-
-        classLoader = grailsApplication.classLoader
+        ClassLoader parent = this.class.getClassLoader();
+        loader = new GroovyClassLoader(parent);
 
         astTestClassDefinition =
                 """
@@ -82,21 +96,23 @@ class ASTIntegrationTests {
             }
         }
         """
+        ConstrainedDiscovery constrainedDiscovery = GrailsFactoriesLoader.loadFactory(ConstrainedDiscovery.class);
 
+        grailsApplication = Holders.grailsApplication
         astTestLookupSource = new GroovyCodeSource(astTestLookupClassDefinition, "testscript", "src/groovy/astTestLookupClass")
-        astTestLookupClass = classLoader.parseClass(astTestLookupSource, false)
-        astTestLookupDomainClass = new DefaultGrailsDomainClass(astTestLookupClass)
-        astTestLookupConstrainedProperties = astTestLookupDomainClass.constrainedProperties
+        astTestLookupClass = loader.parseClass(astTestLookupSource)
+        astTestLookupDomainClass = grailsApplication.mappingContext.addPersistentEntity(astTestLookupClass)
+        astTestLookupConstrainedProperties = constrainedDiscovery.findConstrainedProperties(astTestLookupDomainClass);
 
-        astTestLookup2Source = new GroovyCodeSource(astTestLookup2ClassDefinition, "testscript", "src/groovy/astTestLookup2Class")
-        astTestLookup2Class = classLoader.parseClass(astTestLookup2Source, false)
-        astTestLookup2DomainClass = new DefaultGrailsDomainClass(astTestLookup2Class)
-        astTestLookup2ConstrainedProperties = astTestLookup2DomainClass.constrainedProperties
+        astTestLookup2Source = new GroovyCodeSource(astTestLookup2ClassDefinition, "testscript", "src/main/groovy/astTestLookup2Class")
+        astTestLookup2Class = loader.parseClass(astTestLookup2Source)
+        astTestLookup2DomainClass = grailsApplication.mappingContext.addPersistentEntity(astTestLookup2Class)
+        astTestLookup2ConstrainedProperties = constrainedDiscovery.findConstrainedProperties(astTestLookup2DomainClass)
 
-        astTestSource = new GroovyCodeSource(astTestClassDefinition, "testscript", "src/groovy/testClass")
-        astTestClass = classLoader.parseClass(astTestSource, false)
-        astTestDomainClass = new DefaultGrailsDomainClass(astTestClass)
-        astTestConstrainedProperties = astTestDomainClass.constrainedProperties
+        astTestSource = new GroovyCodeSource(astTestClassDefinition, "testscript", "src/main/groovy/testClass")
+        astTestClass = loader.parseClass(astTestSource)
+        astTestDomainClass = grailsApplication.mappingContext.addPersistentEntity(astTestClass)
+        astTestConstrainedProperties = constrainedDiscovery.findConstrainedProperties(astTestDomainClass)
 
     }
 
@@ -111,43 +127,42 @@ class ASTIntegrationTests {
     // test that AST has added expected fields to domains
     @Test
     void testASTFields() {
-
         // fields
-        assertTrue astTestDomainClass.hasProperty("id")
-        assertTrue astTestDomainClass.hasProperty("version")
-        assertTrue astTestDomainClass.hasProperty("tstStringVarcharText")
-        assertTrue astTestDomainClass.hasProperty("tstIntegerNumber")
-        assertTrue astTestDomainClass.hasProperty("tstLongNumber")
-        assertTrue astTestDomainClass.hasProperty("tstBigDecNumber")
-        assertTrue astTestDomainClass.hasProperty("tstDate")
-        assertTrue astTestDomainClass.hasProperty("tstBoolVarcharIndicator")
-        assertTrue astTestDomainClass.hasProperty("tstLookupClass")
-        assertTrue astTestDomainClass.hasProperty("tstLookup2Class")
+        assertTrue astTestDomainClass.persistentProperties.name.contains("id")
+        assertTrue astTestDomainClass.persistentProperties.name.contains("version")
+        assertTrue astTestDomainClass.persistentProperties.name.contains("tstStringVarcharText")
+        assertTrue astTestDomainClass.persistentProperties.name.contains("tstIntegerNumber")
+        assertTrue astTestDomainClass.persistentProperties.name.contains("tstLongNumber")
+        assertTrue astTestDomainClass.persistentProperties.name.contains("tstBigDecNumber")
+        assertTrue astTestDomainClass.persistentProperties.name.contains("tstDate")
+        assertTrue astTestDomainClass.persistentProperties.name.contains("tstBoolVarcharIndicator")
+        assertTrue astTestDomainClass.persistentProperties.name.contains("tstLookupClass")
+        assertTrue astTestDomainClass.persistentProperties.name.contains("tstLookup2Class")
 
-        assertTrue astTestLookupDomainClass.hasProperty("id")
-        assertTrue astTestLookupDomainClass.hasProperty("version")
-        assertTrue astTestLookupDomainClass.hasProperty("tstPrimaryKey")
+        assertTrue astTestDomainClass.persistentProperties.name.contains("id")
+        assertTrue astTestDomainClass.persistentProperties.name.contains("version")
+        assertTrue astTestDomainClass.persistentProperties.name.contains("tstPrimaryKey")
 
-        assertTrue astTestLookup2DomainClass.hasProperty("id")
-        assertTrue astTestLookup2DomainClass.hasProperty("version")
-        assertTrue astTestLookup2DomainClass.hasProperty("tstPrimaryKey1")
-        assertTrue astTestLookup2DomainClass.hasProperty("tstPrimaryKey2")
+        assertTrue astTestLookup2DomainClass.persistentProperties.name.contains("id")
+        assertTrue astTestLookup2DomainClass.persistentProperties.name.contains("version")
+        assertTrue astTestLookup2DomainClass.persistentProperties.name.contains("tstPrimaryKey1")
+        assertTrue astTestLookup2DomainClass.persistentProperties.name.contains("tstPrimaryKey2")
 
     }
 
     @Test
     void testASTLookup() {
 
-        assertFalse astTestLookupConstrainedProperties.tstPrimaryKey.nullable
-        assertEquals 2, astTestLookupConstrainedProperties.tstPrimaryKey.maxSize
+        assertFalse astTestLookupConstrainedProperties.tstPrimaryKey.appliedConstraints.find{constraint:"nullable"}.constraint.nullable
+        assertEquals 2, astTestLookupConstrainedProperties.tstPrimaryKey.appliedConstraints.find{constraint:"maxSize"}.constraint.nullable
     }
 
 
     @Test
     void testASTLookup2() {
 
-        assertFalse astTestLookup2ConstrainedProperties.tstPrimaryKey1.nullable
-        assertEquals 2, astTestLookup2ConstrainedProperties.tstPrimaryKey1.maxSize
+        assertFalse astTestLookup2ConstrainedProperties.tstPrimaryKey1.appliedConstraints.find{constraint:"nullable"}.constraint.nullable
+        assertEquals 2, astTestLookup2ConstrainedProperties.tstPrimaryKey1.appliedConstraints.find{constraint:"maxSize"}.constraint.maxSize
         assertFalse astTestLookup2ConstrainedProperties.tstPrimaryKey2.nullable
         assertEquals 2, astTestLookup2ConstrainedProperties.tstPrimaryKey2.maxSize
     }
@@ -202,14 +217,14 @@ class ASTIntegrationTests {
 
     @Test
     void testASTBooleanConstraints() {
-        assertTrue astTestConstrainedProperties.tstBoolVarcharIndicator.nullable
+        assertTrue astTestConstrainedProperties.tstBoolVarcharIndicator.appliedConstraints.find{constraint:"nullable"}.constraint.nullable
     }
 
 
     @Test
     void testASTOneColumnLookup() {
 
-        assertFalse astTestConstrainedProperties.tstLookupClass.nullable
+        assertFalse astTestConstrainedProperties.tstLookupClass.appliedConstraints.find{constraint:"nullable"}.constraint.nullable
 
         // not yet figured out how to test for existence of manyToOneProperties: [[name:"a", referencedColumnName:"a"]]
     }

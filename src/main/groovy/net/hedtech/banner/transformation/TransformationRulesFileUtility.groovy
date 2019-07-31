@@ -12,6 +12,7 @@ class TransformationRulesFileUtility {
     private static final String envName = 'BANNER_TRANSFORMATION'
     private static Map transformationRules = null
 
+
     static boolean transformationRulesExist() {
         if (transformationRules == null) {
             loadRules()
@@ -27,6 +28,7 @@ class TransformationRulesFileUtility {
     }
 
     private static void loadRules(){
+        println("load rules is working ")
         Date t0 = new Date()
         XmlParser xmlParser = null
         Integer loadCount = 0

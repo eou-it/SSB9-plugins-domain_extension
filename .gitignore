@@ -41,4 +41,4 @@ web-app/js/log4javascript.js
 web-app/js/logging.js
 lib/bannerTransform.jar
 README.md
-build/
+build/*

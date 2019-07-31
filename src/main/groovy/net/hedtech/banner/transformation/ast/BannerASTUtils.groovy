@@ -18,6 +18,7 @@ import org.codehaus.groovy.ast.expr.ListExpression
 import org.codehaus.groovy.ast.expr.MethodCallExpression
 import org.codehaus.groovy.ast.stmt.ExpressionStatement
 import grails.core.GrailsDomainClassProperty
+import javax.persistence.Column
 
 import javax.persistence.NamedQueries
 import javax.persistence.NamedQuery
@@ -132,7 +133,7 @@ class BannerASTUtils extends org.grails.compiler.injection.GrailsASTUtils {
 
     static AnnotationNode addAnnotationToProperty(PropertyNode propertyNode, String annotation, Map annotationAttributes) {
         FieldNode fieldNode = propertyNode.getField()
-        AnnotationNode annotationNode = new AnnotationNode(new ClassNode(ClassUtils.getClass(annotation)))
+        AnnotationNode annotationNode = new AnnotationNode(new ClassNode(Column))
         annotationAttributes?.each {attribute, value ->
             def expression = value
             if (value instanceof String) {
