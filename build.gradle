@@ -26,7 +26,7 @@ repositories {
     if (System.properties['PROXY_SERVER_NAME']) {
         maven {url "${System.properties['PROXY_SERVER_NAME']}"}
     }
-    
+
     maven { url "https://code.lds.org/nexus/content/groups/main-repo" }
     maven { url "http://repository.jboss.org/maven2/" }
 }
@@ -65,7 +65,7 @@ dependencies {
     //compile "javax.persistence:persistence-api:1.0.2"
     compile files("lib/lib/javax.persistence.jar")
     compile files("bannerTransform.jar")
-    
+
     //compile file("build/classes/main/net/hedtech/banner/transformation/ast")
 
 }
@@ -99,28 +99,22 @@ assets {
 //TODO - Create custom command, Compile the files on Demand
 classes {
     doLast {
-        try {
-            if (new File("build/classes/groovy/main").exists()) {
-                def basedir = System.getProperty('user.dir')
-                println("===In generating AST JAR Dir Path==")
-                def filePath = "build/libs/bannerTransform.jar"
-                def tmpDir = "build/temp"
-                def file = new File(filePath)
-                if (file.exists()) {
-                    ant.delete(dir: file)
-                }
-                ant.copy(todir: tmpDir) {
-                    fileset(dir: "build/classes/groovy/main")
-                }
-                ant.copy(todir: "${tmpDir}/META-INF/services") {
-                    fileset(dir: "grails-app/conf/services")
-                }
-                ant.jar(destfile: "${filePath}", basedir: tmpDir)
-                println "Global AST jar file: build/libs/bannerTransform.jar"
+         if (new File("build/classes/groovy/main").exists()) {
+            println("===In generating AST JAR Dir Path==")
+            def filePath = "build/libs/bannerTransform.jar"
+            def tmpDir = "build/temp"
+            def file = new File(filePath)
+            if (file.exists()) {
+                ant.delete(dir: file)
             }
-        } catch(Exception e) {
-            println "Unable to generate AST JAR"
-            e.stackTrace()
+            ant.copy(todir: tmpDir) {
+                fileset(dir: "build/classes/groovy/main")
+            }
+            ant.copy(todir: "${tmpDir}/META-INF/services") {
+                fileset(dir: "grails-app/conf/services")
+            }
+            ant.jar(destfile: "${filePath}", basedir: tmpDir)
+            println "Global AST jar file: build/libs/bannerTransform.jar"
         }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Ellucian Company L.P. and its affiliates.
+ * Copyright 2014-2019 Ellucian Company L.P. and its affiliates.
  */
 
 package net.hedtech.banner.transformation
@@ -7,6 +7,7 @@ package net.hedtech.banner.transformation
 import grails.test.mixin.*
 import grails.test.mixin.support.*
 import org.junit.After
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 
@@ -18,7 +19,7 @@ Since it is impossible or very difficult to set environment variables within the
 in the IDE or environment.
  */
 //@TestMixin(GrailsUnitTestMixin)
-class TransformationRulesFileUtilityTests {
+class TransformationRulesFileUtilityTests extends Assert {
 
     @Before
     public void setUp() {
@@ -66,7 +67,7 @@ class TransformationRulesFileUtilityTests {
         ]
 
         def result = TransformationRulesFileUtility.mergeMaps( [base, additional] )
-        assertNotNull(result.fields.a)
+        assertNotNull (result.fields.a)
         assertEquals("Failure changing field b","db_bprime",result.fields.b.persistenceProperties.name)
         assertEquals("Failure adding field c","db_c",result.fields.c.persistenceProperties.name)
         assertNotNull("Failed to add methods", result.methods)

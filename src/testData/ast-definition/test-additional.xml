@@ -1,41 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2014 Ellucian Company L.P. and its affiliates.
+  -->
+
 <rules>
-    <rule id="net.hedtech.banner.general.ConfigurationData">
+    <rule id="ast.domain.ext.Employee">
         <![CDATA[
 [
-
     fields: [
-           testField: [
-            persistenceProperties: [name:"GUROCFG_EXT_COL"],
-            type: "java.lang.String",
+		department: [
+            type: "ast.domain.ext.Department",
+			manyToOneProperties: [[name:"department_id", referencedColumnName:"id"]],
             constraintExpression:
                 """
-                testField(nullable: true, maxSize:255)
+                department(nullable: true, unique: false)
+                """
+        ]
+    ],
+    methods: [
+             """
+             def fetchByName(String name) {
+                return []
+             }
+             """
+    ]
+]
+]]>
+    </rule>
+    <rule id="Emp">
+        <![CDATA[
+[
+    fields: [
+        surnamePrefix: [
+            type: "java.lang.String",
+            persistenceProperties: [name:"surname_prefix_new"],
+            constraintExpression:
+                """
+                surnamePrefix(nullable: true, maxSize:30)
                 """
         ]
     ]
-    ,
-   methods: [
-        """
-              public String toString() {
-                return 'ConfigurationData{' +
-                'id=' + id +
-                ', name=' + name + '\' +
-                ', testField=' + testField + '\' +
-                ', type=' + type + '\' +
-                ', value=' + value + '\' +
-                ', version=' + version +
-                ', lastModifiedBy=' + lastModifiedBy + '\' +
-                ', dataOrigin='+ dataOrigin + '\' +
-                ', appId=' + appId + '\' +
-                ', lastModified=' + lastModified +
-                '}'
-            }
-        """
-    ]
-
-
 ]
 ]]>
-
+    </rule>
+    <rule id="AddedClass">
+        <![CDATA[
+[
+    fields: [
+        surnamePrefix: [
+            type: "java.lang.String",
+            persistenceProperties: [name:"surname_prefix"],
+            constraintExpression:
+                """
+                surnamePrefix(nullable: true, maxSize:30)
+                """
+        ]
+    ]
+]
+]]>
     </rule>
 </rules>
