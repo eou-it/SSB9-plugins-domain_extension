@@ -15,7 +15,7 @@ class DomainExtensionGrailsPlugin extends Plugin {
     //def scopes = [excludes:['war','run']]
     def scopes = [includes:'test', excludes:'war' ]
     // the version or versions of Grails the plugin is designed for
-    def grailsVersion = "3.3.2 > *"
+    def grailsVersion = "3.3.11 > *"
 	def dependsOn = [:]
     // resources that are excluded from plugin packaging
     def pluginExcludes = [

@@ -5,22 +5,20 @@
 package net.hedtech.banner.transformation
 
 import domain.extension.Application
-import grails.core.GrailsApplication
 import grails.testing.mixin.integration.Integration
 import grails.transaction.Rollback
 import grails.util.Holders
-import org.grails.core.DefaultGrailsDomainClass
 import org.grails.core.io.support.GrailsFactoriesLoader
-import org.grails.datastore.mapping.model.MappingContext
 import org.grails.datastore.mapping.model.PersistentEntity
-import org.grails.datastore.mapping.model.PersistentProperty
 import org.grails.validation.ValidatorConstraint
 import org.grails.validation.discovery.ConstrainedDiscovery
-import org.hibernate.mapping.PersistentClass
+import org.junit.After
+import org.junit.Before
+import org.junit.Test
 
 import javax.persistence.NamedQueries
+
 import static org.junit.Assert.*
-import org.junit.*
 
 @Integration(applicationClass = Application.class)
 @Rollback

@@ -1,15 +1,17 @@
 /*
- * Copyright 2014-2019 Ellucian Company L.P. and its affiliates.
+ * Copyright 2014-2020 Ellucian Company L.P. and its affiliates.
  */
 
 package net.hedtech.banner.transformation
 
-import grails.test.mixin.*
-import grails.test.mixin.support.*
+
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
+
+import javax.annotation.processing.ProcessingEnvironment
+import java.lang.reflect.Field
 
 /*
 To run this unit test, 2 environment variables are required.
@@ -21,9 +23,13 @@ in the IDE or environment.
 //@TestMixin(GrailsUnitTestMixin)
 class TransformationRulesFileUtilityTests extends Assert {
 
+
     @Before
     public void setUp() {
         // Setup logic here
+        ProcessEnvironment.theCaseInsensitiveEnvironment.put("BANNER_TRANSFORMATION1","src/testData/ast-definition/test-base.xml")
+        ProcessEnvironment.theCaseInsensitiveEnvironment.put("BANNER_TRANSFORMATION2","src/testData/ast-definition/test-additional.xml")
+
     }
 
     @After
@@ -65,7 +71,6 @@ class TransformationRulesFileUtilityTests extends Assert {
 
                 ]
         ]
-
         def result = TransformationRulesFileUtility.mergeMaps( [base, additional] )
         assertNotNull (result.fields.a)
         assertEquals("Failure changing field b","db_bprime",result.fields.b.persistenceProperties.name)
@@ -88,4 +93,5 @@ class TransformationRulesFileUtilityTests extends Assert {
         assertEquals("Unexpected persistenceProperties for surnamePrefix", "surname_prefix_new",e2.fields.surnamePrefix.persistenceProperties.name)
         assertNotNull("Employee misses surnamePrefix field",e1.fields.surnamePrefix)
     }
+
 }
