@@ -22,7 +22,7 @@ import static org.junit.Assert.*
 
 @Integration(applicationClass = Application.class)
 @Rollback
-class ASTIntegrationTests{
+class ASTIntegrationTests {
 
     def                      grailsApplication
     GroovyClassLoader        loader

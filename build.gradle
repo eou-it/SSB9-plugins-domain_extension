@@ -12,19 +12,19 @@ buildscript {
 version "9.32"
 group "domain.extension"
 
-apply plugin:"eclipse"
-apply plugin:"idea"
-apply plugin:"org.grails.grails-plugin"
-apply plugin:"org.grails.grails-plugin-publish"
-apply plugin:"asset-pipeline"
-apply plugin:"org.grails.grails-gsp"
+apply plugin: "eclipse"
+apply plugin: "idea"
+apply plugin: "org.grails.grails-plugin"
+apply plugin: "org.grails.grails-plugin-publish"
+apply plugin: "asset-pipeline"
+apply plugin: "org.grails.grails-gsp"
 
 repositories {
     mavenLocal()
     maven { url "https://repo.grails.org/grails/core" }
 
     if (System.properties['PROXY_SERVER_NAME']) {
-        maven {url "${System.properties['PROXY_SERVER_NAME']}"}
+        maven { url "${System.properties['PROXY_SERVER_NAME']}" }
     }
 
     maven { url "https://code.lds.org/nexus/content/groups/main-repo" }
@@ -71,9 +71,13 @@ dependencies {
 }
 
 configurations {
+    println project.gradle.startParameter.taskNames
     runtime.exclude group: "org.grails", module: "grails-gorm-testing-support"
     runtime.exclude group: "org.springframework.boot", module: "spring-boot-starter-actuator"
-    //all*.exclude module : 'spring-boot-starter-logging'
+    if (project.gradle.startParameter.taskNames.contains(':domain-extension:integrationTest') ||
+            project.gradle.startParameter.taskNames.contains('integrationTest')) {
+        all*.exclude module: 'spring-boot-starter-logging'
+    }
 
 }
 
@@ -94,9 +98,13 @@ grailsPublish {
     }
     title = "My Plugin"
     desc = "Full plugin description"
-    developers = [johndoe:"John Doe"]
+    developers = [johndoe: "John Doe"]
 }
 
+
+integrationTest {
+    ignoreFailures = true
+}
 
 
 assets {
@@ -106,7 +114,7 @@ assets {
 //TODO - Create custom command, Compile the files on Demand
 classes {
     doLast {
-         if (new File("build/classes/groovy/main").exists()) {
+        if (new File("build/classes/groovy/main").exists()) {
             println("===In generating AST JAR Dir Path==")
             def filePath = "build/libs/bannerTransform.jar"
             def tmpDir = "build/temp"
