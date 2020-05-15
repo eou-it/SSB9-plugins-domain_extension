@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Ellucian Company L.P. and its affiliates.
+ * Copyright 2014-2020 Ellucian Company L.P. and its affiliates.
  */
 package domain.extension
 

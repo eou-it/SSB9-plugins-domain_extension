@@ -62,23 +62,16 @@ dependencies {
     //Added for Grails-3
     compile "org.grails.plugins:hibernate5"
     compile "org.hibernate:hibernate-core:5.1.17.Final"
-    //compile "javax.persistence:persistence-api:1.0.2"
-    compile files("lib/lib/javax.persistence.jar")
-    compile files("bannerTransform.jar")
-
-    //compile file("build/classes/main/net/hedtech/banner/transformation/ast")
-
+    testCompile files ("build/libs/bannerTransform.jar")
 }
 
 configurations {
-    println project.gradle.startParameter.taskNames
     runtime.exclude group: "org.grails", module: "grails-gorm-testing-support"
     runtime.exclude group: "org.springframework.boot", module: "spring-boot-starter-actuator"
     if (project.gradle.startParameter.taskNames.contains(':domain-extension:integrationTest') ||
             project.gradle.startParameter.taskNames.contains('integrationTest')) {
         all*.exclude module: 'spring-boot-starter-logging'
     }
-
 }
 
 bootRun {
