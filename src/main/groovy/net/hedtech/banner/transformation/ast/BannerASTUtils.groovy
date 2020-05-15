@@ -6,7 +6,11 @@ package net.hedtech.banner.transformation.ast
 
 import org.apache.commons.lang.ClassUtils
 import org.apache.commons.lang.StringUtils
-import org.codehaus.groovy.ast.*
+import org.codehaus.groovy.ast.AnnotationNode
+import org.codehaus.groovy.ast.ClassHelper
+import org.codehaus.groovy.ast.ClassNode
+import org.codehaus.groovy.ast.FieldNode
+import org.codehaus.groovy.ast.PropertyNode
 import org.codehaus.groovy.ast.builder.AstBuilder
 import org.codehaus.groovy.ast.expr.AnnotationConstantExpression
 import org.codehaus.groovy.ast.expr.ConstantExpression

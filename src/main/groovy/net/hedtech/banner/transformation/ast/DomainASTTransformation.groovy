@@ -4,7 +4,12 @@
 
 package net.hedtech.banner.transformation.ast
 
-import org.codehaus.groovy.ast.*
+import org.codehaus.groovy.ast.ASTNode
+import org.codehaus.groovy.ast.AnnotationNode
+import org.codehaus.groovy.ast.ClassNode
+import org.codehaus.groovy.ast.FieldNode
+import org.codehaus.groovy.ast.MethodNode
+import org.codehaus.groovy.ast.PropertyNode
 import org.codehaus.groovy.ast.builder.AstBuilder
 import org.codehaus.groovy.ast.expr.AnnotationConstantExpression
 import org.codehaus.groovy.ast.expr.ConstantExpression
@@ -13,7 +18,14 @@ import org.codehaus.groovy.ast.expr.PropertyExpression
 import org.codehaus.groovy.control.CompilePhase
 import org.hibernate.annotations.Type
 
-import javax.persistence.*
+import javax.persistence.Column
+import javax.persistence.JoinColumn
+import javax.persistence.JoinColumns
+import javax.persistence.ManyToOne
+import javax.persistence.OneToOne
+import javax.persistence.Temporal
+import javax.persistence.TemporalType
+import javax.persistence.Transient
 
 public class DomainASTTransformation {
 
