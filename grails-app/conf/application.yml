@@ -86,5 +86,5 @@ endpoints:
         unique-names: true
 
 dataSource:
-    dialect: "org.hibernate.dialect.Oracle10gDialect"
+    dialect: "org.hibernate.dialect.H2Dialect"
     loggingSql: false
