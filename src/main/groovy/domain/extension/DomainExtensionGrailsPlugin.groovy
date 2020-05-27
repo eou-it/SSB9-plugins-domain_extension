@@ -8,7 +8,7 @@ import grails.plugins.*
 class DomainExtensionGrailsPlugin extends Plugin {
 	
 	// the plugin version
-    def version = "9.14"
+    def version = "9.33.3.1"
 	
 	 // Next line is supposed to exclude the plugin from the war file
     // It seems to exclude plugins/domain-extension-1.0, but not other artifacts
