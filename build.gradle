@@ -5,26 +5,29 @@ buildscript {
     }
     dependencies {
         classpath "org.grails:grails-gradle-plugin:$grailsVersion"
-        classpath "com.bertramlabs.plugins:asset-pipeline-gradle:2.14.2"
+        classpath "com.bertramlabs.plugins:asset-pipeline-gradle:2.15.1"
+        classpath "net.saliman:gradle-cobertura-plugin:2.6.0"
     }
 }
 
-version "9.32"
+version "9.33.3.1"
 group "domain.extension"
 
-apply plugin:"eclipse"
-apply plugin:"idea"
-apply plugin:"org.grails.grails-plugin"
-apply plugin:"org.grails.grails-plugin-publish"
-apply plugin:"asset-pipeline"
-apply plugin:"org.grails.grails-gsp"
+apply plugin: "eclipse"
+apply plugin: "idea"
+apply plugin: "org.grails.grails-plugin"
+apply plugin: "org.grails.grails-plugin-publish"
+apply plugin: "asset-pipeline"
+apply plugin: "org.grails.grails-gsp"
+apply plugin: 'net.saliman.cobertura'
+
 
 repositories {
     mavenLocal()
     maven { url "https://repo.grails.org/grails/core" }
 
     if (System.properties['PROXY_SERVER_NAME']) {
-        maven {url "${System.properties['PROXY_SERVER_NAME']}"}
+        maven { url "${System.properties['PROXY_SERVER_NAME']}" }
     }
 
     maven { url "https://code.lds.org/nexus/content/groups/main-repo" }
@@ -53,7 +56,7 @@ dependencies {
     profile "org.grails.profiles:web-plugin"
     provided "org.grails:grails-plugin-services"
     provided "org.grails:grails-plugin-domain-class"
-    runtime "com.bertramlabs.plugins:asset-pipeline-grails:2.14.2"
+    runtime "com.bertramlabs.plugins:asset-pipeline-grails:3.0.6"
     testCompile "org.grails:grails-gorm-testing-support"
     testCompile "org.grails:grails-plugin-testing"
     testCompile "org.grails:grails-web-testing-support"
@@ -61,13 +64,17 @@ dependencies {
     compile "oro:oro:2.0.8"
     //Added for Grails-3
     compile "org.grails.plugins:hibernate5"
-    compile "org.hibernate:hibernate-core:5.1.5.Final"
-    //compile "javax.persistence:persistence-api:1.0.2"
-    compile files("lib/lib/javax.persistence.jar")
-    compile files("bannerTransform.jar")
+    compile "org.hibernate:hibernate-core:5.1.17.Final"
+    testCompile files ("build/libs/bannerTransform.jar")
+}
 
-    //compile file("build/classes/main/net/hedtech/banner/transformation/ast")
-
+configurations {
+    runtime.exclude group: "org.grails", module: "grails-gorm-testing-support"
+    runtime.exclude group: "org.springframework.boot", module: "spring-boot-starter-actuator"
+    if (project.gradle.startParameter.taskNames.contains(':domain-extension:integrationTest') ||
+            project.gradle.startParameter.taskNames.contains('integrationTest')) {
+        all*.exclude module: 'spring-boot-starter-logging'
+    }
 }
 
 bootRun {
@@ -87,9 +94,17 @@ grailsPublish {
     }
     title = "My Plugin"
     desc = "Full plugin description"
-    developers = [johndoe:"John Doe"]
+    developers = [johndoe: "John Doe"]
 }
 
+cobertura{
+    coverageFormats = ['xml','html']
+}
+
+
+integrationTest {
+    ignoreFailures = true
+}
 
 
 assets {
@@ -99,7 +114,7 @@ assets {
 //TODO - Create custom command, Compile the files on Demand
 classes {
     doLast {
-         if (new File("build/classes/groovy/main").exists()) {
+        if (new File("build/classes/groovy/main").exists()) {
             println("===In generating AST JAR Dir Path==")
             def filePath = "build/libs/bannerTransform.jar"
             def tmpDir = "build/temp"
