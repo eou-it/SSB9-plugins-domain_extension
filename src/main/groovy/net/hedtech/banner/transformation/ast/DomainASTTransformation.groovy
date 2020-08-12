@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Ellucian Company L.P. and its affiliates.
+ * Copyright 2014-2020 Ellucian Company L.P. and its affiliates.
  */
 
 package net.hedtech.banner.transformation.ast
@@ -125,11 +125,11 @@ public class DomainASTTransformation {
         }
 
         if (propertyMetaData.containsKey("transient") && propertyMetaData.transient == true) {          //add annotation @Transient
-            BannerASTUtils.addAnnotationToProperty(propertyNode, Transient.name, [:])
+            BannerASTUtils.addAnnotationToProperty(propertyNode, Transient, [:])
         } else if (propertyMetaData.containsKey("persistenceProperties")) {                             //add annotation @Column
-            BannerASTUtils.addAnnotationToProperty(propertyNode, Column.name, propertyMetaData.persistenceProperties ?: [:])
+            BannerASTUtils.addAnnotationToProperty(propertyNode, Column, propertyMetaData.persistenceProperties ?: [:])
         } else if (propertyMetaData.containsKey("manyToOneProperties")) {                               //add annotations @ManyToOne, @JoinColumns
-            BannerASTUtils.addAnnotationToProperty(propertyNode, ManyToOne.name, [:])
+            BannerASTUtils.addAnnotationToProperty(propertyNode, ManyToOne, [:])
 
             ListExpression listExpression = new ListExpression()
             //annotations @JoinColumn
@@ -141,9 +141,9 @@ public class DomainASTTransformation {
                 listExpression.addExpression(new AnnotationConstantExpression(joinColumn))
             }
             //add annotation @JoinColumns
-            BannerASTUtils.addAnnotationToProperty(propertyNode, JoinColumns.name, [value: listExpression])
+            BannerASTUtils.addAnnotationToProperty(propertyNode, JoinColumns, [value: listExpression])
         } else if (propertyMetaData.containsKey("oneToOneProperties")) {                               //add annotations @OneToOne, @JoinColumns
-            BannerASTUtils.addAnnotationToProperty(propertyNode, OneToOne.name, [:])
+            BannerASTUtils.addAnnotationToProperty(propertyNode, OneToOne, [:])
 
             ListExpression listExpression = new ListExpression()
             //annotations @JoinColumn
@@ -155,16 +155,16 @@ public class DomainASTTransformation {
                 listExpression.addExpression(new AnnotationConstantExpression(joinColumn))
             }
             //add annotation @JoinColumns
-            BannerASTUtils.addAnnotationToProperty(propertyNode, JoinColumns.name, [value: listExpression])
+            BannerASTUtils.addAnnotationToProperty(propertyNode, JoinColumns, [value: listExpression])
         }
 
         if (fieldNode.getType().name == Date.name) {                    //handle @Temporal annotation for java.util.Date
             String temporalType = propertyMetaData.temporalType ?: "DATE"
             PropertyExpression expression = new AstBuilder().buildFromString("${ TemporalType.name }.${ temporalType }")?.get(0)?.getStatements()?.get(0)?.getExpression()
-            BannerASTUtils.addAnnotationToProperty(propertyNode, Temporal.name, [value: expression])
+            BannerASTUtils.addAnnotationToProperty(propertyNode, Temporal, [value: expression])
         } else if (fieldNode.getType().name == Boolean.name) {          //handle @org.hibernate.annotations.Type annotation for java.lang.Boolean
             String booleanType = propertyMetaData.booleanType ?: "yes_no"
-            BannerASTUtils.addAnnotationToProperty(propertyNode, Type.name, [type: booleanType])
+            BannerASTUtils.addAnnotationToProperty(propertyNode, Type, [type: booleanType])
         }
 
         BannerASTUtils.addConstraintsForProperty(classNode, propertyName, propertyMetaData.constraintExpression)

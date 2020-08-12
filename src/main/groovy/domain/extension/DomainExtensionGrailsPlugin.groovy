@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Ellucian Company L.P. and its affiliates.
+ * Copyright 2014-2020 Ellucian Company L.P. and its affiliates.
  */
 package domain.extension
 
@@ -8,14 +8,14 @@ import grails.plugins.*
 class DomainExtensionGrailsPlugin extends Plugin {
 	
 	// the plugin version
-    def version = "9.14"
+    def version = "9.33.3.1"
 	
 	 // Next line is supposed to exclude the plugin from the war file
     // It seems to exclude plugins/domain-extension-1.0, but not other artifacts
     //def scopes = [excludes:['war','run']]
     def scopes = [includes:'test', excludes:'war' ]
     // the version or versions of Grails the plugin is designed for
-    def grailsVersion = "3.3.2 > *"
+    def grailsVersion = "3.3.11 > *"
 	def dependsOn = [:]
     // resources that are excluded from plugin packaging
     def pluginExcludes = [

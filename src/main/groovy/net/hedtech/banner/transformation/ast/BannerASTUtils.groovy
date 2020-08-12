@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Ellucian Company L.P. and its affiliates.
+ * Copyright 2014-2020 Ellucian Company L.P. and its affiliates.
  */
 
 package net.hedtech.banner.transformation.ast
@@ -17,8 +17,7 @@ import org.codehaus.groovy.ast.expr.ConstantExpression
 import org.codehaus.groovy.ast.expr.ListExpression
 import org.codehaus.groovy.ast.expr.MethodCallExpression
 import org.codehaus.groovy.ast.stmt.ExpressionStatement
-import grails.core.GrailsDomainClassProperty
-import javax.persistence.Column
+import org.grails.datastore.mapping.model.config.GormProperties
 
 import javax.persistence.NamedQueries
 import javax.persistence.NamedQuery
@@ -131,9 +130,9 @@ class BannerASTUtils extends org.grails.compiler.injection.GrailsASTUtils {
     }
 
 
-    static AnnotationNode addAnnotationToProperty(PropertyNode propertyNode, String annotation, Map annotationAttributes) {
+    static AnnotationNode addAnnotationToProperty(PropertyNode propertyNode, Class annotation, Map annotationAttributes) {
         FieldNode fieldNode = propertyNode.getField()
-        AnnotationNode annotationNode = new AnnotationNode(new ClassNode(Column))
+        AnnotationNode annotationNode = new AnnotationNode(new ClassNode(annotation))
         annotationAttributes?.each {attribute, value ->
             def expression = value
             if (value instanceof String) {
@@ -148,7 +147,7 @@ class BannerASTUtils extends org.grails.compiler.injection.GrailsASTUtils {
 
 
     static FieldNode retrieveConstraintField(ClassNode classNode) {
-        classNode?.getProperty(GrailsDomainClassProperty.CONSTRAINTS)?.getField()
+        classNode?.getProperty(GormProperties.CONSTRAINTS)?.getField()
     }
 
 
@@ -187,7 +186,7 @@ class BannerASTUtils extends org.grails.compiler.injection.GrailsASTUtils {
 
     static void addConstraintsForProperty(ClassNode classNode, String propertyName, constraintExpressionSource) {
         if (classNode && !StringUtils.isBlank(propertyName) && !StringUtils.isBlank(constraintExpressionSource)) {
-            ArrayList statements = retrieveProperty(classNode, GrailsDomainClassProperty.CONSTRAINTS)?.field?.getInitialExpression()?.getCode()?.getStatements()
+            ArrayList statements = retrieveProperty(classNode, GormProperties.CONSTRAINTS)?.field?.getInitialExpression()?.getCode()?.getStatements()
             if (statements) {
                 MethodCallExpression expression = new AstBuilder().buildFromString(constraintExpressionSource)?.get(0)?.getStatements()?.get(0)?.getExpression()
                 if (expression) {
